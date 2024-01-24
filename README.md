@@ -26,7 +26,7 @@ npm install
 ```
 
 
-### Set environment variables
+### Set environment variables
 
 Generate a secret key for JWT authentication. Run the following command in the terminal:
 
