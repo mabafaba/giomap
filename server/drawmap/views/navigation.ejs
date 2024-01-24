@@ -1,0 +1,405 @@
+
+<div id="header">
+  
+  <img src="../../csllogo_white.png" alt="CSL logo">
+  
+  
+
+  
+</div>
+
+<div class="menu-container">
+    
+  <div id="menuToggle">
+    <input type="checkbox" />
+    <span></span>
+    <span></span>
+    <span></span>
+    <ul id="menu">
+      <li id='nav-sharemap'><a  href="#">Share Map</a></li>
+      <li id="nav-datadownload"><a href="" target="_blank">Download Shapes</a></li>
+      <li id='nav-maplist'><a href="/drawmap/list">All Maps</a></li>
+      <li id='nav-newmap'><a href="/drawmap/create">New Map</a></li>
+      <li id='nav-about'><a href="">About</a></li>
+      <li id='nav-logout'><a href="#">Logout</a></li>
+      <li>
+        <div id="username"></div>
+      </li>
+      
+    </ul>
+    
+  </div>
+</div>
+
+<style>
+
+#header {
+  /* fixed on top */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  /* show overflow y */
+  overflow-y: visible;
+  /* hide overflow x */
+  overflow-x: hidden;
+  z-index: 100000;
+
+}
+#header img {
+                margin: 15px;
+                height: 20px;
+                /* always keep on top right corner */
+                position: absolute;
+                top: 0;
+                right: 0;
+
+
+                animation: constantly_changing_opacity_infitine_loop 5s infinite;
+
+            }
+
+            @keyframes constantly_changing_opacity_infitine_loop {
+                0% {
+                    opacity: 0.4;
+                }
+                50% {
+                    opacity: 0.8;
+                }
+                100% {
+                    opacity: 0.4;
+                }
+            }
+
+
+
+
+  /* place top left absolutely */
+  .menu-container {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding:15px;
+    width: 100%;
+    height: 100%;
+  }
+  /* a {
+    text-decoration: none;
+    color: #1E1E23;
+    opacity:1;
+    font-size: 1.5em;
+    font-weight: 400;
+    transition: 200ms;
+  }
+  a:hover {
+    opacity:0.5;
+  } */
+  ul {
+    padding: 0;
+    list-style-type: none;
+  }
+  
+  /* make username very small and in background */
+  #username {
+    font-size: 0.5em;
+    color: #1E1E23;
+    opacity:0.5;
+    font-weight: 400;
+    transition: 100ms;
+  }
+  
+  
+  #menuToggle {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    /* align right */
+    
+    position: relative;
+    /* top: 15px; */
+    /* left: 15px; */
+    z-index: 100000;
+    -webkit-user-select: none;
+    user-select: none;
+    
+  }
+  
+  #menuToggle input
+  {
+    display: flex;
+    width: 40px;
+    height: 32px;
+    position: absolute;
+    cursor: pointer;
+    opacity: 0;
+    z-index: 2;
+  }
+  
+  #menuToggle span
+  {
+    display: flex;
+    width: 29px;
+    height: 2px;
+    margin-bottom: 5px;
+    position: relative;
+    background: #ffffff;
+    border-radius: 3px;
+    z-index: 1;
+    transform-origin: 5px 0px;
+    transition: transform 0.1s cubic-bezier(0.77,0.2,0.05,1.0),
+    background 0.1s cubic-bezier(0.77,0.2,0.05,1.0),
+    opacity 0.25s ease;
+  }
+  
+  #menuToggle span:first-child
+  {
+    transform-origin: 0% 0%;
+  }
+  
+  #menuToggle span:nth-last-child(2)
+  {
+    transform-origin: 0% 100%;
+  }
+  
+  #menuToggle input:checked ~ span
+  {
+    opacity: 1;
+    transform: rotate(45deg) translate(-3px, -1px);
+    background: #36383F;
+  }
+  #menuToggle input:checked ~ span:nth-last-child(3)
+  {
+    opacity: 0;
+    transform: rotate(0deg) scale(0.2, 0.2);
+  }
+  
+  #menuToggle input:checked ~ span:nth-last-child(2)
+  {
+    transform: rotate(-45deg) translate(0, -1px);
+  }
+  
+  #menu
+  {
+    position: absolute;
+    width: 180px;
+    height: 250px;
+    box-shadow: 0 0 10px #85888C;
+    margin: -50px 0 0 -50px;
+    /* same margin but individual sides; */
+    /* margin-top: -50px; */
+    /* margin-right: 0; */
+    /* margin-bottom: 0; */
+    /* margin-left: -50px; */
+    padding: 50px;
+    padding-top: 125px;
+    background-color: #F5F6FA;
+    -webkit-font-smoothing: antialiased;
+    transform-origin: 0% 0%;
+    transform: translate(-100%, 0);
+    transition: transform 0.1s cubic-bezier(0.77,0.2,0.05,1.0);
+  }
+  
+  #menu li
+  {
+    padding: 5px 0;
+    transition-delay: 2s;
+    
+    
+  }
+  
+  /* menu li a text color black */
+  #menu li a {
+    color: #1E1E23;
+    opacity:1;
+    /* simple monotype font */
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1em;
+    font-weight: 400;
+    transition: 100ms;
+  }
+  
+  /* less padding on menu li that has div id username as child */
+  
+  #menu li:nth-child(6) {
+    padding: 0px 0;
+  }
+  
+  
+  #menuToggle input:checked ~ ul
+  {
+    transform: none;
+  }
+  
+  
+  /* highlight share map and download data in red */
+  #nav-sharemap a {
+    color: #368ff4 !important
+  }
+  
+  #nav-datadownload a {
+    color: #c136f4 !important
+  }
+  
+</style>
+
+
+<script>
+  
+  // fetch username from user/me and display in menu
+  
+  fetch('/user/me')
+  .then(response => response.json())
+  .then(data => {
+    console.log('USER',data.username);
+    // set username in menu
+    document.getElementById("username").innerHTML = data.username;
+  })
+  
+  
+  // set data download link to current map
+  // get current map from url
+  var url = window.location.href;
+  var mapId = url.substring(url.lastIndexOf('/') + 1);
+  // set download link
+  document.getElementById('nav-datadownload').querySelector('a').href =  "/drawmap/geojson/" + mapId;
+  
+  
+  const page = <%- JSON.stringify(page) %>;
+  
+  // object that defines which nav item is active on which page
+  // show all items (id nav-...) on all pages
+  const defaultVisible = ['nav-sharemap', 'nav-maplist', 'nav-newmap', 'nav-datadownload', 'nav-about', 'nav-logout'];
+  const itemsVisible = {
+    'editmapcanvas': ['nav-maplist', 'nav-newmap','nav-about', 'nav-logout'],
+    'listmaps':      ['nav-maplist', 'nav-newmap','nav-about', 'nav-logout'],
+    'createmap':     ['nav-maplist', 'nav-newmap', 'nav-about', 'nav-logout'],
+    'drawmap':       ['nav-sharemap', 'nav-maplist', 'nav-newmap', 'nav-datadownload', 'nav-about', 'nav-logout'],
+    'about':         ['nav-maplist', 'nav-newmap', 'nav-about', 'nav-logout']
+  }
+  
+  // depending on page, set nav items visible
+  if(itemsVisible[page]) {
+    // hide all items
+    defaultVisible.forEach(item => {
+      document.getElementById(item).style.display = 'none';
+    })
+    // show items for page
+    itemsVisible[page].forEach(item => {
+      document.getElementById(item).style.display = 'block';
+    })
+  }
+  
+  // check if user is logged in by calling /user/me
+  // if 401, send to login page
+  
+  // target url for after login based on page variable
+  const targeturl = {
+    'editmapcanvas': '/drawmap/edit',
+    'listmaps': '/drawmap/list',
+    'createmap': '/drawmap/create',
+    'drawmap': '/drawmap/shared'
+  }
+  // if drawmap or editmapcanvas, add shareLinkId to target url
+  if(page === 'drawmap' || page === 'editmapcanvas') {
+    // get shareLinkId from url
+    const url = window.location.href;
+    const shareLinkId = url.substring(url.lastIndexOf('/') + 1);
+    // add shareLinkId to target url
+    targeturl[page] = targeturl[page] + '/' + shareLinkId;
+  }
+  
+  // set logout link to /user/logout?targeturl= (target url of current page)
+  // /user/logout?targeturl=
+  
+  document.getElementById('nav-logout').querySelector('a').href = '/user/logout?targeturl=' + targeturl[page];
+  
+  
+  fetch('/user/me')
+  .then(response => {
+    if(response.status === 401) {
+      window.location.href = '/user/login?targeturl=' + targeturl[page];
+    }
+  })
+  
+  
+  // sharemap on click
+  // copy url to clipboard
+  // show alert
+  
+  document.getElementById('nav-sharemap').addEventListener('click', function(event) {
+    event.preventDefault();
+    // get shareLinkId from url
+    const url = window.location.href;
+    // const shareLinkId = url.substring(url.lastIndexOf('/') + 1);
+    // copy url to clipboard
+    navigator.clipboard.writeText(url);
+    // show alert
+    // similar to 
+    //                 show_prompt('Delete Map', 'Are you sure you want to delete this map?', 
+    
+    prompt_html = `
+    Anyone with this link can view and edit this map:
+    <br><br>
+    `+ 
+    // style url as code block
+    `<code style="font-size:0.5em">`+url+`</code>`+
+    // copied to clipboard message
+    `<br><br>
+    <div style="color: #85888C; font-size: 0.8em;">Copied to clipboard</div>
+    `;
+    
+    
+    show_prompt('Share Map', 
+    prompt_html, false, 'OK');
+    
+    // close menu by unchecking checkbox
+    
+    document.getElementById('menuToggle').querySelector('input').checked = false;
+    
+    
+    
+    
+    
+  })
+  
+  // when menu is open, close on click outside menu
+  
+  document.addEventListener('click', function(event) {
+    // if click is not on menu
+    if(!event.target.closest('#menuToggle')) {
+      // close menu by unchecking checkbox
+      document.getElementById('menuToggle').querySelector('input').checked = false;
+    }
+  })
+  
+  // about popup on click on about nav item
+  
+  document.getElementById('nav-about').addEventListener('click', function(event) {
+    event.preventDefault();
+    // show about popup
+    show_prompt('About', 
+    `
+    <h2>Realtime Collaborative Mapping</h2>
+    <p> DrawMap is a web application that allows users to place markers, lines, and polygons on a map - simultaneously and in real time. 
+    </p>
+    <!-- link to source code -->
+    <p>
+      Open source and free to use. DrawMap is open source and free to use. The <a href="">source code</a> is available on GitHub."
+    </p>
+    <!-- based on leaflet, socket.io, node, express, alpine.js, sakura.css -->
+    
+    Built with <a href="https://leafletjs.com/">Leaflet</a>, <a href="https://socket.io/">Socket.io</a>, <a href="https://nodejs.org/en/">Node.js</a>, <a href="https://expressjs.com/">Express</a>, <a href="https://alpinejs.dev/">Alpine.js</a>, 
+    and <a href="https://github.com/oxalorg/sakura">sakura.css</a>.
+    `, false, 'OK');
+    
+    // close menu by unchecking checkbox
+    
+    document.getElementById('menuToggle').querySelector('input').checked = false;
+    
+  })
+  
+</script>
+
+<%- include('./alert') %>

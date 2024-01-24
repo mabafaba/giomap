@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura-vader.css" media="screen" />
+  <!-- alpoine js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <title>User page</title>
+</head>
+<body>
+  <h1>Users</h1>
+  <!-- display user name from alpine data -->
+  <div x-data="user" x-init="getUsers()">
+    <template x-for="user in users">
+      <p x-text="user.username"></p>
+    </template>
+
+  <ul></ul>
+  <button class="logout"> <a href="/logout">Log Out</a></button>
+  <script>
+
+    // add user data to alpine store 
+    // on alpine:init
+    document.addEventListener('alpine:init', () => {
+    Alpine.store ('user', () => ({
+      users: [],
+      getUsers() {
+        fetch('/user/all') 
+        .then(res => res.json())
+        .then(data => {
+          this.users = data.user
+          console.log(this.users);
+        })
+      }
+    }))
+   // log to console
+    
+
+  });
+    // log
+
+    const ul = document.querySelector('ul')
+
+    const getUsers = async() => {
+      const res = await fetch('/user/all')
+      const data = await res.json()
+      data.user.map((mappedUser)=> {
+        if (mappedUser.username !== 'admin') {
+          let li = `<li> <b>Username</b> => ${mappedUser.username} <br> <b>Role</b> => ${mappedUser.role} </li>`
+          ul.innerHTML += li
+        } else {
+          return null
+        }
+      })
+    }
+    getUsers()
+  </script>
+</body>
+</html>

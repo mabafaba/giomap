@@ -1,0 +1,147 @@
+<div class="modal" id="modal-alert">
+    <div class="modal-overlay" tabindex="-1">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-alert-title">
+                    Error
+                </h2>
+            </div>
+            <div class="modal-text">
+                <p id="modal-alert-content">
+                    Something went wrong.
+                </p>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-button" id="modal-button-primary" onclick="document.getElementById('modal-alert').style.display = 'none';">Close</button>
+                <button class="modal-button" id="modal-button-secondary" onclick=""></button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function show_prompt(title, message, pribtnHide = false, pribtnLabel = "Close", secBtnLabel = '', secBtnAction = '') {
+    document.getElementById("modal-alert-title").innerHTML = title;
+    document.getElementById("modal-alert-content").innerHTML = message;
+    if (pribtnHide) {
+        document.getElementById("modal-button-primary").style.display = "none";
+    } else {
+        document.getElementById("modal-button-primary").style.display = "inline-block";
+    }
+    document.getElementById("modal-button-primary").innerText = pribtnLabel;
+    if (secBtnLabel != '' && secBtnAction != '') {
+        document.getElementById("modal-button-secondary").innerText = secBtnLabel;
+        document.getElementById("modal-button-secondary").setAttribute('onclick', secBtnAction);
+        document.getElementById("modal-button-secondary").style.display = "inline-block";
+        document.getElementById("modal-button-primary").classList.add("default");
+    } else {
+        document.getElementById("modal-button-secondary").style.display = "none";
+        document.getElementById("modal-button-primary").classList.remove("default");
+    }
+    document.getElementById("modal-alert").style.display = "block";
+}
+
+function prompt_visible() {
+    return document.getElementById("modal-alert").style.display === 'block';
+}
+
+function close_prompt() {
+    document.getElementById('modal-alert').style.display = 'none';
+}
+
+</script>
+<style>
+
+/* set variables */
+
+:root {
+  --bg-color: #545454;
+  --text-color: #ffffff;
+  --button-confirm: #04AA6D;
+  --button-cancel: #f44336;
+
+}
+
+.modal {
+    display: none;
+  }
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* background: rgba(0, 0, 0, 0.6); */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+  }
+  .modal-container {
+    background-color: var(--bg-color);
+    padding: 30px;
+    width: 350px;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 3px;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+  .modal.wide .modal-container {
+    width: 650px;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.25;
+    color: var(--text-color);
+    box-sizing: border-box;
+  }
+  .modal-icon {
+    height: 45px;
+    width: 45px;
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+  .modal-text {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+  .modal-text img {
+    width: 100%;
+    max-height: calc(100vh - 200px);
+    object-fit: contain;
+  }
+  .modal-button {
+    /* font-size: 0.875rem;
+    border-radius: 0.25rem;
+    border-style: none;
+    border-width: 0;
+    cursor: pointer;
+    text-transform: none;
+    overflow: visible;
+    line-height: 1.15;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    background-color: var(--text-color);
+    border: solid 1px var(--text-color);
+    color: var(--bg-color); */
+  }
+  #modal-button-primary.default{
+    /* background-color:  */
+    /* border: solid 1px var(--text-color); */
+    /* color: var(--text-color); */
+  }
+  #modal-button-secondary{
+    display: none;
+  }
+  
+</style>
