@@ -1,22 +1,5 @@
 # Drawmap
 
-## Description
-
-
-<h2>Realtime Collaborative Mapping</h2>
-<p> DrawMap is a web application that allows users to place markers, lines, and polygons on a map - simultaneously and in real time. 
-</p>
-    <!-- link to source code -->
-<p>
-DrawMap is open source and free to use. The <a href="https://github.com/mabafaba/mapdraw">source code</a> is available on GitHub."
-</p>
-<!-- based on leaflet, socket.io, node, express, alpine.js, sakura.css -->
-
-Built with <a href="https://leafletjs.com/">Leaflet</a>, <a href="https://socket.io/">Socket.io</a>, <a href="https://nodejs.org/en/">Node.js</a>, <a href="https://expressjs.com/">Express</a>, <a href="https://alpinejs.dev/">Alpine.js</a>, 
-and <a href="https://github.com/oxalorg/sakura">sakura.css</a>.
-
-
-[AGAIN DESCRIPTION BUT AS MARKDOWN]
 
 DrawMap is a web application that allows users to place markers, lines, and polygons on a map - simultaneously and in real time.
 DrawMap is open source and free to use (MIT License).
