@@ -25,6 +25,7 @@ cd drawmap
 npm install
 ```
 
+
 ### Set environment variables
 
 Generate a secret key for JWT authentication. Run the following command in the terminal:
