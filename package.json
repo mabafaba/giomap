@@ -1,11 +1,12 @@
 {
-  "name": "locat",
+  "name": "drawmap",
   "version": "1.0.0",
-  "description": "Realtime chat app with rooms",
+  "description": "Collaborative Mapping App",
   "main": "server.js",
   "scripts": {
     "start": "node server",
-    "dev": "nodemon server devmode"
+    "dev": "nodemon server devmode",
+    "docker": "docker build -t drawmap . && docker-compose up"
   },
   "author": "Brad Traversy",
   "license": "MIT",

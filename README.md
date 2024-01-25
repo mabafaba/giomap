@@ -10,6 +10,21 @@ DrawMap is open source and free to use (MIT License).
 
 ### Via Docker
 
+*prerequisites*
+
+- [Docker Installed](https://www.docker.com/)
+- [Docker Compose Installed](https://docs.docker.com/compose/install/)
+
+
+If you have node/npm installed:
+
+```
+git clone https://github.com/mabafaba/mapdraw
+cd drawmap
+npm run docker
+```
+
+Without node/npm installation:
 ```
 git clone https://github.com/mabafaba/mapdraw
 cd drawmap
@@ -56,12 +71,20 @@ Where `secret` is the secret key generated in the previous step.
 
 
 ## Usage
+For production:
+
+```
+npm install
+npm run start
+```
+
+For development:
 ```
 npm install
 npm run dev
 ```
 
-App runs at localhost:3000
+App runs at localhost:3000 by default.
 
 # Stack
 
@@ -76,6 +99,7 @@ App runs at localhost:3000
 ## Contributing
 
 Best way to start is to open an issue to discuss the feature you would like to add / change!
+Feel free to contact me directly.
 
 ## TO DO
 
