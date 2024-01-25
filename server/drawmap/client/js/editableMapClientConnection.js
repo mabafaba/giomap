@@ -48,7 +48,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                         
                         show_prompt(
                             'Upload GeoJSON',
-                            'Upload a GeoJSON file to add geometries to the map.', 
+                            'Upload a GeoJSON file to add geometries to the map. Multi-Geometries will be flattened; 3D geometries will be converted to 2D. <a href="https://geojson.org/" target="_blank">Learn more about GeoJSON</a>.', 
                             false,
                             'Cancel',
                             'Upload File',
@@ -148,11 +148,11 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     
                 });
                 
-                map.on('draw:edited', function (e) {
+                map.on('draw:edited', (e) => {
                     // leaflet attaches the edited layers to the event object
                     var editedLayers = e.layers._layers
                     // for each edited layer
-                    Object.keys(editedLayers).forEach(function(key) {
+                    Object.keys(editedLayers).forEach((key) => {
                         this.saveLayerToServer(editedLayers[key]);
                         
                     });
@@ -162,11 +162,11 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     
                 });
                 
-                map.on('draw:deleted', function (e) {
+                map.on('draw:deleted',  (e)=> {
                     // leaflet attaches the deleted layers to the event object
                     var deletedLayers = e.layers._layers
                     // for each item in layers (layers is an object, not an array)
-                    Object.keys(deletedLayers).forEach(function(key) {
+                    Object.keys(deletedLayers).forEach((key)=> {
                         // send to server as geojson
                         this.deleteLayerFromServer(deletedLayers[key]);
                     });
