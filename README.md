@@ -5,14 +5,28 @@ DrawMap is a web application that allows users to place markers, lines, and poly
 DrawMap is open source and free to use (MIT License).
 
 
-## Prerequisites
+
+## Installation
+
+### Via Docker
+
+```
+git clone https://github.com/mabafaba/mapdraw
+cd drawmap
+docker build -t drawmap .
+docker-compose up
+browser http://localhost:3000
+```
+
+
+### Manually
+
+*Prerequisites*
 
 - [Node.js](https://nodejs.org/en/)
 - [npm](https://www.npmjs.com/)
 - [Git](https://git-scm.com/)
 - [MongoDB](https://www.mongodb.com/)
-
-## Installation
 
 ### Install MongoDB
 

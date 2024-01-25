@@ -1,0 +1,17 @@
+version: '3'
+services:
+  web:
+    depends_on:
+      - mongodb
+    image: mapdraw
+    container_name: mapdraw-web
+    ports:
+      - "3000:3000"
+  mongodb:
+    image: mongo
+    container_name: mapdraw-mongodb
+    volumes:
+      - mapdraw-mongodb-data:/data/db
+
+volumes:
+  mapdraw-mongodb-data:
