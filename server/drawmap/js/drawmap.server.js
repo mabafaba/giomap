@@ -12,6 +12,10 @@ const MapCanvas = require('./mapcanvas.model');
 const must = require('../../utils/must');
 const { authorizeBasic } = require("../../users");
 const { authorizeToken } = require("../../users/js/users.authorize");
+const turf = require('@turf/turf');
+const {feature2Dify} = require('./drawmap.utils');
+console.log('feature2Dify:', feature2Dify);
+
 module.exports = function(app, io){
   
   // add view folder to existing app view paths
@@ -24,6 +28,17 @@ module.exports = function(app, io){
   app.use(express.json());
   app.use(cookieParser());
   
+  // add client side js to existing app static paths
+  app.use('/drawmap/js', express.static(path.join(__dirname, '../client/js')));
+  // log static paths
+  console.log('static paths:');
+  app._router.stack.forEach(function(r){ 
+    if (r.route && r.route.path){
+      console.log(r.route.path)
+    }
+  })
+
+
   // add views/drawmap.ejs as a view on route /drawmap
   const router = require("./drawmap.router")
   app.use("/drawmap", router);
@@ -67,11 +82,7 @@ module.exports = function(app, io){
       return verified;
     }
     
-
-    // LIVE UPDATES BETWEEN USERS
-    // handle user creating/editing a geometry
-    socket.on("iMadeAGeometry!", async json => {
-      
+    async function saveGeometry (json, socket) {
       // verify user
       const verified = await socketVerifyUser(socket);
       // if not verified, send error message to user
@@ -80,14 +91,18 @@ module.exports = function(app, io){
         return;
       }
       const mapcanvasShareLinkId = json.mapcanvasShareLinkId;
-      const data = json.layer;
+      var data = json.layer;
+
 
       must(data && data.geometry && data.geometry.type && data.geometry.coordinates, "geometry must be a valid geojson feature");
       must(data.properties && data.properties.uuid, "geometry must have a uuid property");
       
+      // convert 3d coordinates to 2d
+
+      data = feature2Dify(data);
+
       // find the mapcanvas that this geometry belongs to
       const mapCanvas = await MapCanvas.findOne({shareLinkId: mapcanvasShareLinkId});
-      console.log('searched canvas '+ mapcanvasShareLinkId, mapCanvas);
       // if not found, return
       if (!mapCanvas) {
         console.log('mapcanvas '+mapcanvasShareLinkId+' not found');
@@ -98,7 +113,6 @@ module.exports = function(app, io){
       const existing = await MapDrawing.findOne({"feature.properties.uuid": data.properties.uuid});
       // if it does, update it
       if (existing){
-        console.log('found existing entry:', existing);
         existing.feature = data;
         existing.userId = null;
         existing.socketId = socket.id;
@@ -122,9 +136,22 @@ module.exports = function(app, io){
         await mapCanvas.save();
         
       }
-      // send newly created / updated geometry to everyone currently editing the map 
-      socket.broadcast.to(mapcanvasShareLinkId).emit('someoneMadeAGeometry!', data);
-    })
+      return data;
+
+    }
+
+
+    // LIVE UPDATES BETWEEN USERS
+    // handle user creating/editing a geometry
+    socket.on("iMadeAGeometry!",
+      async json => {
+        saveGeometry(json, socket)
+        .then((data) => {
+          // broadcast to mapcanvasShareLinkId room
+          socket.broadcast.to(json.mapcanvasShareLinkId).emit('someoneMadeAGeometry!', data);
+        })
+      }
+    );
     
     // handle user deleting a geometry
     
@@ -146,10 +173,35 @@ module.exports = function(app, io){
       // socket.broadcast.to(mapcanvasShareLinkId).emit('someoneDeletedAGeometry!', data);
       socket.broadcast.emit('someoneDeletedAGeometry!', data);
     })
-    
-  });
-  
-  
-  
+
+
+    socket.on("iUploadedGeometriesFromFile!", async json => {
+      console.log('iUploadedGeometriesFromFile!', json);
+
+      // flatten each feature in the json.layer array with turf.flatten
+      // then send each feature to receiveGeometry
+      
+      layer_flat = turf.flatten(json.layer);
+
+      layer_flat.features.forEach((feature) => {
+        // reconstruct json, save to db and broadcast to room
+        const  newJson = {
+          layer: feature,
+          mapcanvasShareLinkId: json.mapcanvasShareLinkId
+        }
+
+       saveGeometry(newJson, socket)
+        .then((data) => {
+          // broadcast to mapcanvasShareLinkId room
+          console.log('broadcasting to room:', json.mapcanvasShareLinkId);
+          // send to all users in the room including sender
+          io.to(json.mapcanvasShareLinkId).emit('someoneMadeAGeometry!', data);
+
+        })
+      })
+      
+    }
+    )
+  })
 }
 

@@ -2,51 +2,59 @@
 <div id="header">
   
   <img src="../../csllogo_white.png" alt="CSL logo">
-  
-  
 
-  
-</div>
-
-<div class="menu-container">
+  <div class="menu-container">
     
-  <div id="menuToggle">
-    <input type="checkbox" />
-    <span></span>
-    <span></span>
-    <span></span>
-    <ul id="menu">
-      <li id='nav-sharemap'><a  href="#">Share Map</a></li>
-      <li id="nav-datadownload"><a href="" target="_blank">Download Shapes</a></li>
-      <li id='nav-maplist'><a href="/drawmap/list">All Maps</a></li>
-      <li id='nav-newmap'><a href="/drawmap/create">New Map</a></li>
-      <li id='nav-about'><a href="">About</a></li>
-      <li id='nav-logout'><a href="#">Logout</a></li>
-      <li>
-        <div id="username"></div>
-      </li>
+    <div id="menuToggle">
+      <input type="checkbox" />
+      <span></span>
+      <span></span>
+      <span></span>
+      <ul id="menu">
+        <li id='nav-sharemap'><a  href="#">Share Map</a></li>
+        <li id="nav-datadownload"><a href="" target="_blank">Download Shapes</a></li>
+        <li id='nav-maplist'><a href="/drawmap/list">All Maps</a></li>
+        <li id='nav-newmap'><a href="/drawmap/create">New Map</a></li>
+        <li id='nav-about'><a href="">About</a></li>
+        <li id='nav-logout'><a href="#">Logout</a></li>
+        <li>
+          <div id="username"></div>
+        </li>
+        
+      </ul>
       
-    </ul>
-    
+    </div>
   </div>
 </div>
+
+
 
 <style>
 
 #header {
   /* fixed on top */
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 50px;
+  top: 0px; 
+  left: 0px;
+  width: 100vw;
+  /* height: auto; */
+  height: 500px;
   /* show overflow y */
-  overflow-y: visible;
+  /* overflow-y: visible; */
+  /* all overlow options: visible, hidden, scroll, auto */
   /* hide overflow x */
   overflow-x: hidden;
   z-index: 100000;
+  /* not clickable */
+  pointer-events: none;
 
 }
+
+/* all header children clickable */
+#header * {
+  pointer-events: auto;
+}
+
 #header img {
                 margin: 15px;
                 height: 20px;
@@ -73,6 +81,36 @@
             }
 
 
+/* animation to rotate from 0 degree to +1 degree, -1 degree and back */
+
+@keyframes rotateALittle {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(1deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(-1deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+          
+/* apply to all buttons */
+button {
+  /* animation - each button starts animation at a random point, and takes a random duration (from 3-6 seconds*/
+  /* animation: rotateALittle 3s infinite;
+  animation-delay: calc(3s * random());
+  animation-duration: calc(3s * random()); */
+  /* the above code starts all button animations at the same time. Make them start at different times! */
+  animation: rotateALittle 3s infinite;
+
+}
 
 
   /* place top left absolutely */
@@ -83,7 +121,7 @@
     left: 0;
     padding:15px;
     width: 100%;
-    height: 100%;
+    /* height: 100%; */
   }
   /* a {
     text-decoration: none;

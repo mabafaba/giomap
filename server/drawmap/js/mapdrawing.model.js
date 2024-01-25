@@ -19,7 +19,17 @@ const mapDrawingSchema = new mongoose.Schema({
             // must contain type and coordinates
             type: {
                 type: String,
-                enum: ['Point', 'LineString', 'Polygon'],
+                enum: [
+                    "Point",
+                    "MultiPoint",
+                    "LineString",
+                    "MultiLineString",
+                    "Polygon",
+                    "MultiPolygon",
+                    "GeometryCollection",
+                    "Feature",
+                    "FeatureCollection"
+                ],
                 required: true
             },
             coordinates: {
@@ -28,14 +38,14 @@ const mapDrawingSchema = new mongoose.Schema({
             }
         }
     },
-
+    
     // which mapcanvas does this belong to?
     mapcanvas: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'mapcanvas',
         required: true
     },
-   
+    
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',

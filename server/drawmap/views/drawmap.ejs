@@ -4,7 +4,7 @@
     <title>Shared Map</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
-
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""/>
@@ -13,13 +13,16 @@
     <script src="/socket.io/socket.io.js"></script>
     
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <!-- <script src="../js/osm_overpass_turbo.js" type="text/javascript"></script> -->
     <!-- <script src="https://unpkg.com/osmtogeojson@2.2.12/osmtogeojson.js"></script> -->
     <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura-vader.css" media="screen" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <!-- include alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- drawmap JS script -->
+    <script src="../js/geoutils.js"></script>
+    <script src="../js/editableMapClientConnection.js"></script>
     
     <!-- <div id="cover" style="background-color:aquamarine;position:fixed;width:100%;height:100%;z-index:3000;left:0;top:0"></div> -->
     <!-- <button id="gotome" style="position:fixed;left:50%;top:50%;z-index:3001;" onclick="goToUser()">Go to me!</button> -->
@@ -31,15 +34,15 @@
     <!-- <div x-data="posts" x-init="$store.posts.refreshPosts()" > -->
         <!-- navigation -->
         <%- include('./navigation', {page:"drawmap"}) %> 
- 
+        
         <div id="map"></div>
-
+        
         
         <style>
             #map {
-
+                
                 width: 100vw;
-                /* view height minus 3em */
+                /* view height minus some */
                 height: calc(100vh - 50px);
                 margin-top: 50px;
                 
@@ -49,413 +52,208 @@
                 margin: 0;
                 padding: 0;
             }
-
-  
-       
+            
+            
+            
             
         </style>
         
         
         <script>
             
-            // ejs get mapCanvas share link id as passed to ejs template
+            // ejs get mapCanvas share link id as passed to ejs template server side
             // if not available, get it from url
             
             <% if(locals.mapCanvas.shareLinkId){ %>
                 var mapCanvasShareLinkId = <%- JSON.stringify(locals.mapCanvas.shareLinkId) %>;
-            <% } else { %>
-
-            var mapCanvasShareLinkId = window.location.href.split('/shared/')[1];
-            <% } %>
-
-
-
-            function LayerToGeoJson(layer) {
-                const json = layer.toGeoJSON();
-                
-                if (layer instanceof L.Circle) {
-                    json.properties.radius = layer.getRadius();
-                }
-                
-                return json;
-            }
-            
-            function GeoJsonToLayer(data) {
-                const layers = [];
-                console.log('converting to layer',data);
-                
-                L.geoJSON(data, {
-                    pointToLayer: (feature, latlng) => {
-                        if (feature.properties && feature.properties.radius) {
-                            return new L.Circle(latlng, feature.properties.radius);
-                        } else {
-                            return new L.Marker(latlng);
-                        }
-                    },
-                    onEachFeature: (feature, layer) => {
-                        layers.push(layer);
-                    },
-                });
-                console.log("layers created from geojson",layers);
-                return layers;
-            };
-            
-            
-            const socket = io();
-
-            // popup when server says not authorized
-            socket.on('notAuthorized', (msg)=>{
-                show_prompt('Not logged in!', 'You need to be logged in to edit this map. <a href="/user/login">Login</a> or <a href="/user/register">register</a> to continue.',false, "OK");
-            })
-            
-   
-            socket.on('someoneMadeAGeometry!', (geojsonFeature)=>{
-                console.log('received geometries!', geojsonFeature);
-                newLayer = GeoJsonToLayer(geojsonFeature);
-                // check if layer already exists
-                // based on uuid
-                // if yes, delete it
-                var newuuid = geojsonFeature.properties.uuid;
-                drawnItems.eachLayer(function (layer) {
-                    console.log('layer',layer);
-                    console.log('layer.feature.properties.uuid',layer.feature.properties.uuid);
-                    if(layer.feature.properties.uuid == newuuid){
-                        console.log('layer already exists');
-                        console.log('removing layer',layer);
-                        drawnItems.removeLayer(layer);
-                    }
-                });
-
-
-                // add popup 
-                newLayer.forEach(
-                function(l){
-                    console.log('adding popup to layer',l);
-                    addEditPropertiesPopupToLayer(l);
-                });
-
-                
-                // var geojsonLayer = L.geoJson(geojsonFeature);
-                
-                
-                
-                newLayer.forEach(
-                function(l){
-                    drawnItems.addLayer(l);
-                });
-                
-                // Add the layer to the map
-                // receivedLayer.addTo(map);
-            })
-            
-            // someoneDeletedAGeometry
-            
-            socket.on('someoneDeletedAGeometry!', (geojsonFeature)=>{
-                console.log('received geometries!', geojsonFeature);
-                newLayer = GeoJsonToLayer(geojsonFeature);
-                var uuid = geojsonFeature.properties.uuid;
-                // var geojsonLayer = L.geoJson(geojsonFeature);
-                
-                // remove layer with uuid from drawnItems
-                drawnItems.eachLayer(function (layer) {
-                    console.log('layer',layer);
-                    console.log('layer.feature.properties.uuid',layer.feature.properties.uuid);
-                    if(layer.feature.properties.uuid == uuid){
-                        console.log('removing layer',layer);
-                        drawnItems.removeLayer(layer);
-                    }
-                });
-                
-                
-                // Add the layer to the map
-                // receivedLayer.addTo(map);
-            })
-            
-            const mapView = <%- JSON.stringify(mapCanvas.leafletView) %>;
-
-            // create a map in the "map" div, set the view to a given place and zoom
-            console.log('mapView',mapView);
-            console.log('mapView.center',mapView.center);
-            console.log('mapView.zoom',mapView.zoom);
-            console.log('mapView.center.lng',mapView.center.lng);
-            map = L.map('map',{zoomControl: false}).setView(mapView.center, mapView.zoom);
-            L.control.zoom({
-                position: 'bottomright'
-            }).addTo(map);
-            
-            // don't let user zoom out too far
-            // this.map.options.minZoom = 15;
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map);
-            
-            googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
-                maxZoom: 20,
-                subdomains:['mt0','mt1','mt2','mt3']
-            }).addTo(map);
-            // Initialize the FeatureGroup to store editable layers
-            var drawnItems = new L.FeatureGroup();
-            map.addLayer(drawnItems);
-            
-            // Initialize the draw control and pass it the FeatureGroup of editable layers
-            var drawControl = new L.Control.Draw({
-                position: 'topright',
-                edit: {
-                    featureGroup: drawnItems
-                }
-            });
-            map.addControl(drawControl);
-            
-            
-            
-            
-            
-            function addEditPropertiesPopupToLayer (layer){
-                
-                
-                function popupSaveToFeature (e) {
-                    // prevent default submit action
-                    e.preventDefault();
+                <% } else { %>
                     
-                    console.log('saving popup (or cancelling!!!!!', e);
+                    var mapCanvasShareLinkId = window.location.href.split('/shared/')[1];
+                    <% } %>    
+       
+                    // map canvas passed from server
+                    const mapView = <%- JSON.stringify(mapCanvas.leafletView) %>;
                     
-                    if(e.submitter.value=="cancel"){
+                    // create a map in the "map" div, set the view to a given place and zoom
+                    map = L.map('map',{zoomControl: false}).setView(mapView.center, mapView.zoom);
+                    
+                    L.control.zoom({
+                        position: 'bottomright'
+                    }).addTo(map);
+                    
+                    // don't let user zoom out too far
+                    // this.map.options.minZoom = 15;
+                    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    }).addTo(map);
+                    
+                    googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+                        maxZoom: 20,
+                        subdomains:['mt0','mt1','mt2','mt3']
+                    }).addTo(map);
+
+                    
+                    mapio = mapio(map, mapCanvasShareLinkId, addEditPropertiesPopupToLayer);
+                    editingLayer = mapio.editingLayer;
+                    
+                    
+                    function openGeoJsonFileDialog(){
                         
-                        layer.closePopup();
-                        // if layer is new, remove it
-                        if(!layer.feature.properties.uuid){
-                            console.log('removing layer',layer);
-                            drawnItems.removeLayer(layer);
-                        }
-                        // drawnItems.removeLayer(layer);
-                    }
-                    
-                    else if(e.submitter.value=="save"){
-                        
-                        // get name and description from popup form
-                        feature.properties.name = document.getElementById("name").value;
-                        feature.properties.description = document.getElementById("description").value;
-                        // add uuid to feature if it doesn't exist
-                        feature.properties.uuid = feature.properties.uuid || crypto.randomUUID();
-                        
-                        console.log("sending geometries!", LayerToGeoJson(layer));
-                        socket.emit('iMadeAGeometry!', {"layer": LayerToGeoJson(layer), "mapcanvasShareLinkId": mapCanvasShareLinkId});
-                        // socket.emit('iMadeAGeometry!', {});
-
-                        // close popup
-                        console.log('save close popup');
-                        
-                    }
-                    
-                    layer.closePopup();
-                    
-                }
-                
-                
-                var feature = layer.feature = layer.feature || {};
-                feature.type = feature.type || "Feature";
-                feature.properties = feature.properties || {};
-                feature.properties["name"] = feature.properties["name"] || "";
-                console.log('feature.properties',feature.properties);
-                feature.properties["description"] = feature.properties["description"] || "";
-                
-                
-                
-                
-                layer.bindPopup();
-                
-                
-                // add event listener to popup form button to save changes
-                layer.on('popupopen', function(e) {
-                    var feature = layer.feature = layer.feature || {};
-                    feature.type = "Feature";
-                    feature.properties = feature.properties || {};
-                    feature.properties["name"] = feature.properties["name"] || "";
-                    feature.properties["description"] = feature.properties["description"] || "";
-                    
-                    // get name and description from popup form
-                    // feature.properties.name = document.getElementById("name").value;
-                    // feature.properties.description = document.getElementById("description").value;
-                    // update popup content
-                    layer.setPopupContent(`
-                    
-                    <form id="popupForm">
-                        <label for="name">Name:</label><br>
-                        <textarea id="name" name="name" placeholder="Enter name" rows="1">${feature.properties.name}</textarea><br>
-                        <label for="description">Description:</label><br>
-                        <textarea id="description" name="description" placeholder="Enter description" rows="4" cols="20">${feature.properties.description}</textarea><br>`
-                        + (feature.properties.createdBy ? 
-                        `<p style="font-size:0.8em; color:gray">by <span id="createdBy">${feature.properties.createdBy.username}</span></p><br><br>` : ``) +
-                        `<button type="submit" name="action" value="save">Save</button>
-                        <button type="submit" name="action" value="cancel">Cancel</button>
-                    </form>`
-                    );
-                    
-                    document.getElementById("popupForm").addEventListener("submit", popupSaveToFeature);
-                    document.getElementById("popupForm").addEventListener("cancel", popupSaveToFeature);
-                    
-                    console.log('opened popup!')
-                    
-                });
-                
-                
-                
-            }
-            
-            
-            map.on('draw:created', function (e) {
-                var type = e.layerType,
-                layer = e.layer;
-                console.log('e',e);
-                
-                if (type === 'marker') {
-                    // Do marker specific actions
-                }
-                
-                // Do whatever else you need to. (save to db, add to map etc)
-                // add popup to layer
-                // the popup should have two text fields, name and description that maps to
-                // respective feature properties
-                // as well as a 'save' button to edit those properties
-                
-                // make sure I can add properties that appear in geojson
-                
-                // add popup to layer
-                // get name and description from feature properties
-                addEditPropertiesPopupToLayer(layer);
-                
-                
-                // add event listener to popup form button to save changes
-                
-                
-                drawnItems.addLayer(layer);
-                layer.openPopup();
-                
-            });
-            
-            map.on('draw:edited', function (e) {
-                // Update db to save latest changes.
-                
-                // get layer that was edited
-                var layers = e.layers._layers
-                // for each item in layers (layers is an object, not an array)
-                Object.keys(layers).forEach(function(key) {
-                    // get layer
-                    var layer = layers[key];
-
-                    socket.emit('iMadeAGeometry!', {"layer":LayerToGeoJson(layer), "mapcanvasShareLinkId": mapCanvasShareLinkId});
-                    
-                });
-                
-                console.log('edited layers',e);
-                
-                
-                
-            });
-            
-            map.on('draw:deleted', function (e) {
-                // Update db to save latest changes.
-                console.log('draw:deleted');
-                console.log('deleted layers',e);
-                // emit iDeletedAGeometry event
-                var layers = e.layers._layers
-                // for each item in layers (layers is an object, not an array)
-                Object.keys(layers).forEach(function(key) {
-                    // get layer
-                    var layer = layers[key];
-                    socket.emit('iDeletedAGeometry!', LayerToGeoJson(layer));
-                    
-                });
-                
-            });
-            
-            // make popups not accessible when in edit mode
-
-            map.on('draw:editstart', function (e) {
-                console.log('draw:editstart');
-                drawnItems.eachLayer(function (layer) {
-                    console.log('layer',layer);
-                    layer.closePopup();
-                    // also disable popup on click
-                    layer.off('click');
-                });
-            });
-
-            map.on('draw:editstop', function (e) {
-                console.log('draw:editstop');
-                drawnItems.eachLayer(function (layer) {
-                    console.log('layer',layer);
-                    // reenable popup on click
-                    layer.on('click', function(e) {
-                        layer.openPopup();
-                    });
-                });
-            });
-
-
-
-
-            // socket.io connection to exchange drawn items between users:
-            // code:
-            
-            // function sendDrawnItems(){
-                //     // send edit to server
-                //     socket.emit('drawnItems')
-                // }
-                
-                // connect socket
-                // const socket = io();
-                // listen for drawnItems from server
-                // socket.on('drawnItems', (editedLeafletLayer)=>{
-                    //     // add leaflet layer to map
-                    //     editedLeafletLayer.addTo(map);
-                    
-                    // })
-                    
-                    // pull geojson from drawmap/geojson
-                    // add to map
-                    const endpoint = '/drawmap/geojson/'+ mapCanvasShareLinkId
-                    fetch(endpoint)
-                    // check status
-                    .then(response => {
-                        if (response.status !== 200) {
-                            console.log('Looks like there was a problem. Status Code: ' +
-                            response.status);
-                            return;
-                        }
-
-                        return response;
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // get feature from data 
-                        data = data.map(x=>x.feature);
-                        ;                console.log(data);
-                        // add geojson to drawnItems
-                        var geojsonLayer = GeoJsonToLayer(data);
-                        console.log(geojsonLayer);
-                        geojsonLayer.forEach(
-                        function(l){
-                            console.log('adding popup to layer',l);
-                            addEditPropertiesPopupToLayer(l);
-                            // addTo(drawnItems);
-                            drawnItems.addLayer(l);
+                        // create input element
+                        var input = document.createElement('input');
+                        // set input type to file
+                        input.type = 'file';
+                        // set input accept to geojson
+                        input.accept = '.geojson';
+                        // add event listener to input
+                        input.addEventListener('change', function(e){
+                            // prevent default action
+                            e.preventDefault();
+                            e.stopImmediatePropagation()
+                            // get file
+                            var file = e.target.files[0];
+                            // create file reader
+                            var reader = new FileReader();
+                            // add event listener to reader
+                            reader.addEventListener('load', function(e){
+                                // prevent default action
+                                e.preventDefault();
+                                e.stopImmediatePropagation();
+                                // get file contents
+                                var contents = e.target.result;
+                                // parse contents as json
+                                var geojson = JSON.parse(contents);
+                                // create layers from geojson
+                                createGeometriesFromGeoJson(geojson);
+                                // close alert
+                                close_prompt();
+                                // new prompt: all went well
+                                show_prompt('Success!', 'GeoJSON file uploaded successfully.',false, "OK");
+                            });
+                            // read file as text
+                            reader.readAsText(file);
                         });
+                        // display input
                         
+                        input.click();
+                    } 
+                    
+                    L.Control.UploadGeoJson = L.Control.extend({
+                        onAdd: function(map) {
+                            var img = L.DomUtil.create('img');
+                            var controlDiv = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');                           
+                            controlDiv.innerHTML = '<a href="#" title="Upload GeoJSON" role="button" aria-label="Upload GeoJSON" id="uploadGeoJson"><i class="bx bx-upload" style="font-size: 2rem; display: flex; align-items: center; justify-content: center;"></i></a>';
+                            
+                            controlDiv.addEventListener('click', function(e){
+                                
+                                // show_prompt('Upload GeoJSON', 'Upload a GeoJSON file to add geometries to the map.',false, "Select File", "Cancel", openGeoJsonFileDialog);
+                                
+                                
+                                show_prompt(
+                                'Upload GeoJSON',
+                                'Upload a GeoJSON file to add geometries to the map.', 
+                                false,
+                                'Cancel',
+                                'Upload File',
+                                'openGeoJsonFileDialog()');
+                                
+                                
+                            });
+                            return controlDiv;
+                        },
                         
+                        onRemove: function(map) {
+                            // Nothing to do here
+                        }
                     });
                     
+                    L.control.uploadgeojson = function(opts) {
+                        return new L.Control.UploadGeoJson(opts);
+                    }
+                    
+                    L.control.uploadgeojson({ position: 'topright' }).addTo(map);
                     
                     
-                // ask server to join this linkids room
-                socket.emit('joinMapRoom', mapCanvasShareLinkId);
                     
+                    function addEditPropertiesPopupToLayer (layer){
+                        
+                        function submitPopupForm (e) {
+                            // this function is created within addEditPropertiesPopupToLayer
+                            // so that it has access to the layer variable
+                            // see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures
+                            
+                            e.preventDefault(); // prevent default submit action
+                            e.stopImmediatePropagation(); // prevent other event listeners from firing
+                            // copy form data to layer
+                            var feature = layer.feature = layer.feature || {};
+                            feature.type = "Feature";
+                            feature.properties = feature.properties || {};
+                            feature.properties["name"] = feature.properties["name"] || "";
+                            feature.properties["description"] = feature.properties["description"] || "";
+                            
+                            // get form data
+                            var formData = new FormData(e.target);
+                            // set layer properties
+                            feature.properties["name"] = formData.get("name");
+                            feature.properties["description"] = formData.get("description");
+                            
+                            // prevent default submit action
+                            if(e.submitter.value=="save"){
+                                mapio.saveLayerToServer(layer);
+                            }
+                            layer.closePopup();
+                            
+                        }
+                        
+                        layer.bindPopup();
+                        
+                        
+                        // add event listener to popup form button to save changes
+                        layer.on('popupopen', function(e) {
+                            var feature = layer.feature = layer.feature || {};
+                            feature.type = "Feature";
+                            feature.properties = feature.properties || {};
+                            feature.properties["name"] = feature.properties["name"] || "";
+                            feature.properties["description"] = feature.properties["description"] || "";
+                            
+                            // update popup content
+                            layer.setPopupContent(`
+                            
+                            <form id="popupForm" class="popupForm">
+                                <label for="name">Name:</label><br>
+                                <textarea id="name" name="name" placeholder="Enter name" rows="1">${feature.properties.name}</textarea><br>
+                                <label for="description">Description:</label><br>
+                                <textarea id="description" name="description" placeholder="Enter description" rows="4" cols="20">${feature.properties.description}</textarea><br>`
+                                + (feature.properties.createdBy ? 
+                                `<p style="font-size:0.8em; color:gray">by <span id="createdBy">${feature.properties.createdBy.username}</span></p><br><br>` : ``) +
+                                `<button type="submit" name="action" value="save" ">Save</button>
+                                <button type="submit" name="action" value="cancel">Cancel</button>
+                            </form>`
+                            );
+                            
+                            document.getElementById("popupForm").addEventListener("submit", submitPopupForm);
+                            document.getElementById("popupForm").addEventListener("cancel", submitPopupForm);
+                            
+                            
+                            console.log('popup has been opened');
+                        });
+                        console.log('created popup with form & event listener');
+                        
+                        return layer;
+                        
+                    }
                     
                 </script>
                 
                 
                 <style>
+                    
+                    /*  on leaflet control disable the sakura's a:hover styling */
+                    .leaflet-control a:hover {
+                        color: inherit;
+                    }
+                    
                     .leaflet-popup-content {
                         /* min-width: 100px; */
                         overflow-y: scroll;
@@ -478,9 +276,9 @@
                     } 
                     
                 </style>
-
-
-<!-- include alert -->
-<%- include('./alert') %>
+                
+                
+                <!-- include alert -->
+                <%- include('./alert') %>
             </body>
             </html>
