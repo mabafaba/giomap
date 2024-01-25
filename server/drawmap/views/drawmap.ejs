@@ -124,8 +124,23 @@
                                 var contents = e.target.result;
                                 // parse contents as json
                                 var geojson = JSON.parse(contents);
-                                // create layers from geojson
-                                createGeometriesFromGeoJson(geojson);
+                                // create layers from geojson features and add them to the editing layer
+                                // not included in mapio, so doing it manually here
+                                geojson.features.forEach(function(feature){
+                                    // add uuid to feature
+                                    feature.properties.uuid = crypto.randomUUID();
+                                    
+                                    
+                                    // send to server 
+                                    console.log('emitting iUploadedGeometriesFromFile!');
+                                    console.log(mapio.mapCanvasShareLinkId);
+                                    mapio.socket.emit('iUploadedGeometriesFromFile!',
+                                        {layer: feature, mapcanvasShareLinkId: mapio.mapCanvasShareLinkId}
+                                    );
+                                });
+                                
+                                // add layers to map
+
                                 // close alert
                                 close_prompt();
                                 // new prompt: all went well
@@ -139,40 +154,9 @@
                         input.click();
                     } 
                     
-                    L.Control.UploadGeoJson = L.Control.extend({
-                        onAdd: function(map) {
-                            var img = L.DomUtil.create('img');
-                            var controlDiv = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');                           
-                            controlDiv.innerHTML = '<a href="#" title="Upload GeoJSON" role="button" aria-label="Upload GeoJSON" id="uploadGeoJson"><i class="bx bx-upload" style="font-size: 2rem; display: flex; align-items: center; justify-content: center;"></i></a>';
-                            
-                            controlDiv.addEventListener('click', function(e){
-                                
-                                // show_prompt('Upload GeoJSON', 'Upload a GeoJSON file to add geometries to the map.',false, "Select File", "Cancel", openGeoJsonFileDialog);
-                                
-                                
-                                show_prompt(
-                                'Upload GeoJSON',
-                                'Upload a GeoJSON file to add geometries to the map.', 
-                                false,
-                                'Cancel',
-                                'Upload File',
-                                'openGeoJsonFileDialog()');
-                                
-                                
-                            });
-                            return controlDiv;
-                        },
-                        
-                        onRemove: function(map) {
-                            // Nothing to do here
-                        }
-                    });
+
                     
-                    L.control.uploadgeojson = function(opts) {
-                        return new L.Control.UploadGeoJson(opts);
-                    }
                     
-                    L.control.uploadgeojson({ position: 'topright' }).addTo(map);
                     
                     
                     
