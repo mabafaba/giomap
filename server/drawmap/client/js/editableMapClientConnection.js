@@ -18,8 +18,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     this.editingLayer.addTo(map);
                 }
             }
-            
-            
             this.addEditingControls(this.map);
             this.connectMapToServer(this.map, this.editingLayer);
             
@@ -37,7 +35,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
             
             L.Control.UploadGeoJson = L.Control.extend({
                 onAdd: function(map) {
-                    var img = L.DomUtil.create('img');
                     var controlDiv = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');                           
                     controlDiv.innerHTML = '<a href="#" title="Upload GeoJSON" role="button" aria-label="Upload GeoJSON" id="uploadGeoJson"><i class="bx bx-upload" style="font-size: 2rem; display: flex; align-items: center; justify-content: center;"></i></a>';
                     

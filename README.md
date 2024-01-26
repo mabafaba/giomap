@@ -4,8 +4,6 @@
 DrawMap is a web application that allows users to place markers, lines, and polygons on a map - simultaneously and in real time.
 DrawMap is open source and free to use (MIT License).
 
-
-
 ## Installation
 
 ### Via Docker

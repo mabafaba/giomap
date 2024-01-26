@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"  type="text/javascript"></script>
     <script src="/socket.io/socket.io.js"></script>
-    
+
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <!-- <script src="https://unpkg.com/osmtogeojson@2.2.12/osmtogeojson.js"></script> -->
     <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura-vader.css" media="screen" />
@@ -19,6 +19,7 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <!-- include alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script type="text/javascript" src="../js/leafletgraticule.js"></script>
 
     <!-- drawmap JS script -->
     <script src="../js/geoutils.js"></script>
@@ -93,10 +94,61 @@
                         subdomains:['mt0','mt1','mt2','mt3']
                     }).addTo(map);
 
+                    // add graticule
+                    graticule = zoomLimitedGraticule(map, 0.5, 6);
+                    graticule.on();
+                    // add control to toggle graticule
+                    // using <box-icon name='grid'></box-icon> for icon
+
+                    L.Control.ToggleGraticule = L.Control.extend({
+                        onAdd: function(map) {
+                            
+                            var controlDiv = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');                           
+                            controlDiv.innerHTML = '<a href="#" title="Toggle grid" role="button" aria-label="Toggle Grid" id="toggleGrid"><i class="bx bx-grid" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:black; margin: auto;"></i></a>';
+                            
+                            controlDiv.onclick = function(e){
+                                e.preventDefault();
+                                if(graticule.isOn){
+                                    graticule.off();
+                                    // change icon color
+                                    controlDiv.innerHTML = '<a href="#" title="Toggle grid" role="button" aria-label="Toggle Grid" id="toggleGrid"><i class="bx bx-grid" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:gray; margin: auto;"></i></a>'
+                                } else {
+                                    graticule.on();
+                                    // change icon color
+                                    controlDiv.innerHTML = '<a href="#" title="Toggle grid" role="button" aria-label="Toggle Grid" id="toggleGrid"><i class="bx bx-grid" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:black; margin: auto;"></i></a>'
+                                }
+                            }
+                            return controlDiv;
+                        },
+                        onRemove: function(map) {
+                            // Nothing to do here
+                        }
+                    });
+
+                    L.control.toggleGraticule = function(opts) {
+                        return new L.Control.ToggleGraticule(opts);
+                    }
+                    L.control.toggleGraticule({ position: 'bottomright' }).addTo(map);
+                    
+                    updateGridControlButtonVisibility = function(){
+                        if(map.getZoom() <= graticule.minZoom){
+                            console.log('zoomed out too far');
+                            document.getElementById('toggleGrid').style.display = 'none';
+                        } else {
+                            console.log('zoomed in enough');
+                            document.getElementById('toggleGrid').style.display = 'block';
+                        }
+                    }
+                    
+                    updateGridControlButtonVisibility();
+                    // on zoom, show or hide graticule button depending on zoom level
+                    map.on('zoomend', updateGridControlButtonVisibility);
+
                     
                     mapio = mapio(map, mapCanvasShareLinkId, addEditPropertiesPopupToLayer);
                     editingLayer = mapio.editingLayer;
                     
+            
                     
                     function openGeoJsonFileDialog(){
                         
@@ -254,6 +306,17 @@
                         /* min-width:100px; */
                     } 
                     
+                    /* <i> children of <a> of leaflet-control-custom */
+                    .leaflet-control-custom a i {
+                        font-size: 2rem; */
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color:black;
+                        margin: auto;
+                        padding-top:5px;
+                    }
+
                 </style>
                 
                 
