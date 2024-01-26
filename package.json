@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Collaborative Mapping App",
   "main": "server.js",
-  "scripts": {
+  "scripts": { 
     "start": "node server",
     "dev": "nodemon server devmode",
     "docker": "docker build -t drawmap . && docker-compose up"
