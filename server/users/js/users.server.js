@@ -18,6 +18,7 @@ const User = require("./users.model");
 module.exports = function(app, parentRoute = ""){
   
   const userRouter = require("./users.router")(parentRoute);
+  console.log("userRouter", userRouter);
   // add view folder to existing app view paths
   app.set("view engine", "ejs");
   let views = app.get('views');
@@ -29,6 +30,8 @@ module.exports = function(app, parentRoute = ""){
   app.use(cookieParser());
 
   // Routes
+  const userRouteURL = parentRoute+"/user";
+  console.log("userRouteURL", userRouteURL);
   app.use(parentRoute+"/user", userRouter);
 
 

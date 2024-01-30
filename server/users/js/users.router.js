@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router();
+
 
 
 User = require("./users.model")
@@ -8,7 +8,7 @@ const { authorizeAdmin, authorizeBasic} = require("./users.authorize");
 
 
 const userRouter = function (parentRoute = "") {
-
+const router = express.Router();
 // api
 router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
@@ -32,6 +32,7 @@ router.route("/logout").get((req, res) => {
   res.redirect(parentRoute+"/user/login?targeturl=" + target);
 });
 
+return router;
 
 }
 module.exports = userRouter;
