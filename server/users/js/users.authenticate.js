@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const must = require("../../utils/must");
 require('dotenv').config();
 // JWT secret must be set in .env file in the root folder of the project
+console.log("process.env", process.env);
 const jwtSecret = process.env.JWT_SECRET;
 if(!jwtSecret) {
   throw new Error("you need to add a variable JWT_SECRET with a JWT secret to a .env file in the root folder (not part of the git repository as it is a secret)");
