@@ -61,6 +61,11 @@
         
         
         <script>
+
+            // popup with map name and map description on page load
+
+            show_prompt('<%= mapCanvas.name %>', '<%= mapCanvas.description %>', false, 'OK');
+
             
             // ejs get mapCanvas share link id as passed to ejs template server side
             // if not available, get it from url
@@ -75,31 +80,31 @@
                     // map canvas passed from server
                     const mapView = <%- JSON.stringify(mapCanvas.leafletView) %>;
                     
-                    // create a map in the "map" div, set the view to a given place and zoom
+                    // create a map in the "map" div, set view based on ejs template data passed from server
                     map = L.map('map',{zoomControl: false}).setView(mapView.center, mapView.zoom);
                     
+                    // add zoom control to map
                     L.control.zoom({
                         position: 'bottomright'
                     }).addTo(map);
                     
-                    // don't let user zoom out too far
-                    // this.map.options.minZoom = 15;
+                    // add tile layer to map
                     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         maxZoom: 19,
                         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     }).addTo(map);
                     
+                    // add google satellite layer
                     googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
                         maxZoom: 20,
                         subdomains:['mt0','mt1','mt2','mt3']
                     }).addTo(map);
 
                     // add graticule
-                    graticule = zoomLimitedGraticule(map, 0.5, 6);
+                    graticule = zoomLimitedGraticule(map, 0.5, 7);
                     graticule.on();
-                    // add control to toggle graticule
-                    // using <box-icon name='grid'></box-icon> for icon
 
+                    // add control to toggle graticule
                     L.Control.ToggleGraticule = L.Control.extend({
                         onAdd: function(map) {
                             
@@ -149,6 +154,8 @@
                     editingLayer = mapio.editingLayer;
                     
             
+
+                    
                     
                     function openGeoJsonFileDialog(){
                         
