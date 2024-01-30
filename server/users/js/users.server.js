@@ -17,7 +17,7 @@ const User = require("./users.model");
 
 module.exports = function(app, parentRoute = ""){
   
-  const userRouter = require("./users.router");
+  const userRouter = require("./users.router")(parentRoute);
   // add view folder to existing app view paths
   app.set("view engine", "ejs");
   let views = app.get('views');

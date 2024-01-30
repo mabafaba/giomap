@@ -287,7 +287,7 @@ button {
   
   // fetch username from user/me and display in menu
   
-  fetch('/user/me')
+  fetch('drawmap/user/me')
   .then(response => response.json())
   .then(data => {
     console.log('USER',data.username);
@@ -351,13 +351,13 @@ button {
   // set logout link to /user/logout?targeturl= (target url of current page)
   // /user/logout?targeturl=
   
-  document.getElementById('nav-logout').querySelector('a').href = '/user/logout?targeturl=' + targeturl[page];
+  document.getElementById('nav-logout').querySelector('a').href = 'drawmap/user/logout?targeturl=' + targeturl[page];
   
   
   fetch('/user/me')
   .then(response => {
     if(response.status === 401) {
-      window.location.href = '/user/login?targeturl=' + targeturl[page];
+      window.location.href = 'drawmap/user/login?targeturl=' + targeturl[page];
     }
   })
   

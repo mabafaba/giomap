@@ -192,7 +192,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 
                 
                 this.socket.on('notAuthorized', (msg)=>{
-                    show_prompt('Not logged in!', 'You need to be logged in to edit this map. <a href="/user/login">Login</a> or <a href="/user/register">register</a> to continue.',false, "OK");
+                    show_prompt('Not logged in!', 'You need to be logged in to edit this map. <a href="drawmap/user/login">Login</a> or <a href="drawmap/user/register">register</a> to continue.',false, "OK");
                 })
                 
                 

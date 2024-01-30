@@ -7,6 +7,8 @@ const { registerUser, loginUser, updateUser, deleteUser, getAllUsers, getUser } 
 const { authorizeAdmin, authorizeBasic} = require("./users.authorize");
 
 
+const userRouter = function (parentRoute = "") {
+
 // api
 router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
@@ -27,9 +29,9 @@ router.route("/logout").get((req, res) => {
   res.cookie("jwt", "", { maxAge: "1" });
   // get url query string
   const target = req.query.targeturl;
-  res.redirect("/user/login?targeturl=" + target);
+  res.redirect(parentRoute+"/user/login?targeturl=" + target);
 });
-router.route("/admin").get(authorizeAdmin, (req, res) => res.render("admin"));
-router.route("/basic").get(authorizeBasic, (req, res) => res.render("userpage"));
 
-module.exports = router;
+
+}
+module.exports = userRouter;
