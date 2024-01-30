@@ -1,3 +1,9 @@
+/**
+ * This module exports a function that sets up the user-related routes and middleware for an Express app.
+ * @module users.server.js
+ * @param {Object} app - The Express app object.
+ * @param {string} parentRoute - The parent route for the user-related routes as a string. will change localhost:3000/user/login to localhost:3000/parentRoute/login
+ */
 const express = require("express");
 // const connectDB = require("./users.db"); // not required if a db connection exists
 // connectDB(); 
@@ -9,7 +15,7 @@ const User = require("./users.model");
 
 
 
-module.exports = function(app){
+module.exports = function(app, parentRoute = ""){
   
   const userRouter = require("./users.router");
   // add view folder to existing app view paths
@@ -23,7 +29,7 @@ module.exports = function(app){
   app.use(cookieParser());
 
   // Routes
-  app.use("/user", userRouter);
+  app.use(parentRoute+"/user", userRouter);
 
 
 }

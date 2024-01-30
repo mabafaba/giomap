@@ -8,7 +8,7 @@ app.use(express.json())
 
 // user management
 users = require("./server/users")
-users.server(app);
+users.server(app, "/drawmap");
 
 // debugging routes only in devmode
 if (process.argv.includes("devmode")){
