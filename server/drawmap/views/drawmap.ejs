@@ -63,8 +63,8 @@
         <script>
 
             // popup with map name and map description on page load
-
-            show_prompt('<%= mapCanvas.name %>', '<%= mapCanvas.description %>', false, 'OK');
+            const description = <%- JSON.stringify(mapCanvas.description) %>
+            show_prompt('<%= mapCanvas.name %>', description, false, 'OK');
 
             
             // ejs get mapCanvas share link id as passed to ejs template server side
