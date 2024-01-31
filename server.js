@@ -20,7 +20,7 @@ if (process.argv.includes("devmode")){
 const server = http.createServer(app);
 const io = socketio(server,
   {
-    path: '/drawmap/'
+    path: '/drawmap-socket-io'
   });
 
 require("./server/drawmap/js/drawmap.server")(app, io);
