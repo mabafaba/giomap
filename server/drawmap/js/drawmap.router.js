@@ -4,19 +4,31 @@ const crypto = require('crypto');
 const router = express.Router();
 const MapCanvas = require('./mapcanvas.model');
 const MapDrawing = require('./mapdrawing.model');
-const { authorizeBasic } = require('../../users');
 
-router.route('/geojson')
-    .get(authorizeBasic, async (req, res) => {
+
+    const { authorizeBasic } = require('../../users/js/users.authorize')
+
+    authorizeAndRedirect = [authorizeBasic, (req, res, next) => {
+        if (req.body.authorized) {
+            console.log('authorized');
+            next();
+        } else {
+            res.redirect('./user/login');
+        }
+    }];
+
+    
+    router.route('/geojson')
+    .get(authorizeAndRedirect, async (req, res) => {
         const drawMapEntries = await MapDrawing.find();
         res.send(drawMapEntries);
     });
-
-
-router.route('/geojson/:shareLinkId')
-.get(authorizeBasic, async (req, res) => {
-    // find corresponding mapcanvas
-    MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
+    
+    
+    router.route('/geojson/:shareLinkId')
+    .get(authorizeAndRedirect, async (req, res) => {
+        // find corresponding mapcanvas
+        MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
         .then((mapCanvas) => {
             // if not found, dont handle this request
             if (!mapCanvas) {
@@ -36,7 +48,7 @@ router.route('/geojson/:shareLinkId')
                 mapdrawing.feature.properties.createdBy = mapdrawing.createdBy;
             });
             return mapCanvas;
-
+            
         })
         .then((mapCanvas) => {
             res.send(mapCanvas.mapdrawings);
@@ -44,25 +56,25 @@ router.route('/geojson/:shareLinkId')
         .catch((err) => {
             console.log('Could not get GeoJSON', err);
         });
-}
-);
-
-router.route( '/list/json')
-    .get(authorizeBasic, async (req, res) => {
+    }
+    );
+    
+    router.route( '/list/json')
+    .get(authorizeAndRedirect, async (req, res) => {
         var allMaps = await MapCanvas.find();
         // populate user details for all maps
         // only keep user id and username
         allMaps = await MapCanvas.populate(allMaps, { path: 'createdBy', select: 'i_d username' });
         res.send(allMaps);
     });
-
-router.route('/list')
-    .get(authorizeBasic, (req, res) => {
+    
+    router.route('/list')
+    .get(authorizeAndRedirect, (req, res) => {
         res.render('listmaps');
     });
-
-router.route('/create')
-    .post(authorizeBasic, async (req, res) => {
+    
+    router.route('/create')
+    .post(authorizeAndRedirect, async (req, res) => {
         req.body.shareLinkId = crypto.randomBytes(20).toString('hex');
         MapCanvas.create({
             name: req.body.name,
@@ -82,16 +94,16 @@ router.route('/create')
             console.log('Could not create map canvas', err);
             res.status(500).send(err);
         });
-
-
+        
+        
     });
-
+    
     // 
-
-
-// 
-router.route('/shared/:shareLinkId')
-    .get(authorizeBasic, async (req, res, next) => {
+    
+    
+    // 
+    router.route('/shared/:shareLinkId')
+    .get(authorizeAndRedirect, async (req, res, next) => {
         // not standard id, we're using shareLinkId instead (unguessable link)
         MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
         .then((mapCanvas) => {
@@ -103,10 +115,10 @@ router.route('/shared/:shareLinkId')
         })
     });
     
-
+    
     // edit map details - GET / VIEW
     router.route('/edit/:shareLinkId')
-    .get(authorizeBasic, async (req, res, next) => {
+    .get(authorizeAndRedirect, async (req, res, next) => {
         // not standard id, we're using shareLinkId instead (unguessable link)
         MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
         .then((mapCanvas) => {
@@ -117,10 +129,10 @@ router.route('/shared/:shareLinkId')
             res.render('editmapcanvas', { mapCanvas });
         })
     });
-
+    
     // edit map details - POST
     router.route('/update/:shareLinkId')
-    .post(authorizeBasic, async (req, res, next) => {
+    .post(authorizeAndRedirect, async (req, res, next) => {
         // not standard id, we're using shareLinkId instead (unguessable link)
         MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
         .then((mapCanvas) => {
@@ -137,10 +149,10 @@ router.route('/shared/:shareLinkId')
             res.status(200).send(mapCanvas);
         })
     });
-
+    
     // delete map
     router.route('/delete/:shareLinkId')
-    .delete(authorizeBasic, async (req, res, next) => {
+    .delete(authorizeAndRedirect, async (req, res, next) => {
         // not standard id, we're using shareLinkId instead (unguessable link)
         MapCanvas.findOneAndDelete({ shareLinkId: req.params.shareLinkId })
         .then((mapCanvas) => {
@@ -155,10 +167,10 @@ router.route('/shared/:shareLinkId')
         })
     }
     );
-
-
+    
+    
     router.route('/mapdetails/:shareLinkId')
-    .get(authorizeBasic, async (req, res, next) => {
+    .get(authorizeAndRedirect, async (req, res, next) => {
         // not standard id, we're using shareLinkId instead (unguessable link)
         MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
         .then((mapCanvas) => {
@@ -169,26 +181,27 @@ router.route('/shared/:shareLinkId')
             res.status(200).send(mapCanvas);
         })
     });
-
-
-
-
-
-router.route('/create')
-    .get(authorizeBasic, (req, res) => {
+    
+    
+    
+    
+    
+    router.route('/create')
+    .get(authorizeAndRedirect, (req, res) => {
         res.render('createmap');
     });
-
-router.route('/')
-    .get(authorizeBasic, (req, res) => {
+    
+    router.route('/')
+    .get(authorizeAndRedirect, (req, res) => {
         res.render('listmaps');
     });
-
-
-router.route('/about')
+    
+    
+    router.route('/about')
     .get((req, res) => {
         res.render('about');
     });
+    
 
 
 module.exports = router;

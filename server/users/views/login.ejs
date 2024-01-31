@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+  <base href="/drawmap/">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura-vader.css" media="screen" />
@@ -19,7 +20,7 @@
     <input type="password" id="password" required><br>
     <input type="submit" value="login"><br>
     </form>
-  <a href="/user/register">Don't have an accout? Register</a>
+  <a href="./user/register">Don't have an accout? Register</a>
 
   <script>
     const form = document.querySelector('form')
@@ -47,18 +48,19 @@
 
     // add targeturl query string to register link
     const registerLink = document.querySelector('a')
-    registerLink.href = `/user/register?targeturl=${targetUrl}`
+    registerLink.href = `./user/register?targeturl=${targetUrl}`
 
    form.addEventListener('submit', async (e) => {
       e.preventDefault()
       display.textContent = ''
       try {
-        const res = await fetch('/user/login', {
+        const res = await fetch('user/login', {
           method: 'POST',
           body: JSON.stringify({ username: username.value, password: password.value }),
           headers: { 'Content-Type': 'application/json' }
         })
         const data = await res.json()
+        console.log('data',data);
         if (res.status === 400 || res.status === 401) {
           return display.textContent = `${data.message}. ${data.error ? data.error : ''}`
         }
@@ -70,8 +72,9 @@
         }
         // otherwise, redirect to home page
         else{
-          console.log("redirecting to home page")
-          location.assign('/')
+          console.log("redirecting to list page")
+          
+          // location.assign("./list")
         }
 
       } catch (err) {

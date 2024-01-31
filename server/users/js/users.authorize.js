@@ -5,6 +5,8 @@ const jwtSecret = "4715aed3c946f7b0a38e6b534a9583628d84e96d10fbc04700770d572af3d
 // takes only the token and allowed roles as arguments
 // returns {success:true/false, user: null/decodedtoken, message: "error message"}
 
+
+
 async function authorizeToken (token, allowedRoles = ["admin", "basic"]) {
   if (token) {
     try {
@@ -34,26 +36,38 @@ function auth (req, res, next) {
   if (token) {
     jwt.verify(token, jwtSecret, (err, decodedToken) => {
       if (err) {
-        return res.status(401).json({ message: "Not authorized, decoding error" });
+        req.body.authorized = false;
+        req.body.user = null;
+        // this middlewear function only checks if token is valid, and adds verified user to req.body or adds to req.authorized = false
+        // it does not send a response, so that the route handler can send a response
+        console.log("401 - decoded token:",decodedToken);
+        next();
+        return;
+
       } else {
         // is role in array of authorized roles?
         if (req.authorizedRoles.includes(decodedToken.role)) {
           req.body.user = decodedToken;
+          req.body.authorized = true;
           console.log("ok - decoded token:",decodedToken);
           next();
+          return;
         } else {
           console.log("401 - decoded token:",decodedToken);
-          return res.status(401).json({ message: "Not authorized, must be one of " + req.authorizedRoles });
+          // return res.status(401).json({ message: "Not authorized, must be one of " + req.authorizedRoles });
+          // instead, add to req.body and let route handler send response
+          req.body.authorized = false;
+          req.body.user = null;
+          next();
+          return;
         }
       }
     });
   } else {
-    res.render("login", { target: req.originalUrl});
-
-    
-    // return res
-    //   .status(401)
-    //   .json({ message: "Not authorized, token not available"});
+    req.body.authorized = false;
+    req.body.user = null;
+    next()
+    return;
   }
 };
 
@@ -73,8 +87,4 @@ function authorizeBasic (req, res, next) {
 
 
 // export as single object
-module.exports = {
-  authorizeAdmin,
-  authorizeBasic,
-  authorizeToken
-};
+module.exports = { authorizeToken, authorizeAdmin, authorizeBasic };

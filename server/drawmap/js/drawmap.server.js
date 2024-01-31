@@ -40,7 +40,7 @@ module.exports = function(app, io){
 
 
   // add views/drawmap.ejs as a view on route /drawmap
-  const router = require("./drawmap.router")
+  const router = require("./drawmap.router");
   app.use("/drawmap", router);
   
 
