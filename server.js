@@ -18,7 +18,11 @@ if (process.argv.includes("devmode")){
 
 // drawmap 
 const server = http.createServer(app);
-const io = socketio(server);
+const io = socketio(server,
+  {
+    path: '/drawmap/'
+  });
+
 require("./server/drawmap/js/drawmap.server")(app, io);
 
 // Set static folder

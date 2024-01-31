@@ -5,7 +5,9 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
         mapCanvasShareLinkId: mapCanvasShareLinkId,
         onEachNewFeature: onEachNewFeature,
         editingLayer: null,
-        socket: io(),
+        socket: io({
+            path: "/drawmap/"
+          }),
         init: function (map) {
             // Initialise the FeatureGroup to store editable layers
             if(!editingLayer){
