@@ -51,7 +51,8 @@
           // if good status, redirect to target url
 
           if(res.status === 200 || res.status === 201){
-            location.assign(targeturl)
+            
+            location.assign("/drawmap/list")
           }
  
           if(res.status === 400 || res.status === 401){
