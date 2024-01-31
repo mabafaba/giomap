@@ -89,16 +89,35 @@
                     }).addTo(map);
                     
                     // add tile layer to map
-                    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         maxZoom: 19,
                         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     }).addTo(map);
                     
                     // add google satellite layer
+                    googleSatHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{
+                        maxZoom: 20,
+                        subdomains:['mt0','mt1','mt2','mt3']
+                    }).addTo(map);
+
                     googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
                         maxZoom: 20,
                         subdomains:['mt0','mt1','mt2','mt3']
                     }).addTo(map);
+
+                    
+
+                    // controls to toggle between tile layers
+                    var baseMaps = {
+                        "Map": osm,
+                        "Satellite": googleSat,
+                        "Hybrid": googleSatHybrid
+                    };
+                    // 
+                    // L.control.layers(baseMaps).addTo(map);
+                    // layers control bottom left
+                    L.control.layers(baseMaps, null, {position: 'bottomleft'}).addTo(map);
+                    
 
                     // add graticule
                     graticule = zoomLimitedGraticule(map, 0.5, 7);
