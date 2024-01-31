@@ -13,7 +13,7 @@ const MapDrawing = require('./mapdrawing.model');
             console.log('authorized');
             next();
         } else {
-            res.redirect('./user/login');
+            res.redirect('/drawmap/user/login');
         }
     }];
 
