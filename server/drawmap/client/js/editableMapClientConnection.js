@@ -26,7 +26,11 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
         },
         
         addEditingControls: function (map) {
-            
+                        // exclude clear all button from editing controls
+            L.EditToolbar.Delete.include({
+                removeAllLayers: false
+            });
+
             // Initialise the draw control and pass it the FeatureGroup of editable layers
             var drawControl = new L.Control.Draw({
                 edit: {
