@@ -40,9 +40,10 @@
                     <p style="color: rgb(150, 150, 150);">by <span x-text="map.createdBy.username"></span></p>
                     
                     <button x-on:click="window.location.href = '/drawmap/shared/' + map.shareLinkId">Open</button>
-                    <button x-on:click="window.location.href = '/drawmap/edit/' + map.shareLinkId">Edit Details</button>
+                    <button  x-show="map.userIsCreator" x-on:click="window.location.href = '/drawmap/edit/' + map.shareLinkId">Edit Details</button>
                     <!-- delete button -->
-                    <button x-on:click="deleteMap(map.shareLinkId)">Delete</button>
+                    <button x-show="map.userIsCreator" x-on:click="deleteMap(map.shareLinkId)">Delete</button>
+                    <!-- a button that only shows if map.userIsCreator -->
                 </div>
             </template>
 

@@ -65,7 +65,18 @@ const MapDrawing = require('./mapdrawing.model');
         // populate user details for all maps
         // only keep user id and username
         allMaps = await MapCanvas.populate(allMaps, { path: 'createdBy', select: 'i_d username' });
-        res.send(allMaps);
+        allMapsJson = allMaps.map((map) => {
+            mapObj = map.toObject();
+            console.log('mapObj', mapObj);
+            console.log('req.body.user.id', req.body.user.id);
+            if (mapObj.createdBy._id == req.body.user.id) {
+                mapObj.userIsCreator = true;
+            } else {
+                mapObj.userIsCreator = false;
+            }
+            return mapObj;
+        })
+        res.send(allMapsJson);
     });
     
     router.route('/list')
@@ -153,7 +164,26 @@ const MapDrawing = require('./mapdrawing.model');
     // delete map
     router.route('/delete/:shareLinkId')
     .delete(authorizeAndRedirect, async (req, res, next) => {
+
+        // find map, check if user is creator
+        // if not, return 401
+        
+        mapcanvas = await MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
+        
+        // if no user id, return 401
+        if(!req.body.user.id){
+            res.status(401).json({message: 'Not authorized'});
+            return;
+        }
+
+        if(mapcanvas.createdBy!=req.body.user.id){
+
+            res.status(401).json({message: 'Only the creator of this map can delete it'});
+            return;
+        }
         // not standard id, we're using shareLinkId instead (unguessable link)
+
+
         MapCanvas.findOneAndDelete({ shareLinkId: req.params.shareLinkId })
         .then((mapCanvas) => {
             // if not found, dont handle this request
