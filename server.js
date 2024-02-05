@@ -10,6 +10,11 @@ app.use(express.json())
 users = require("./server/users")(app, "/drawmap");
 // users.server(app, "/drawmap");
 
+
+// chat
+
+
+
 // debugging routes only in devmode
 if (process.argv.includes("devmode")){
   require("./server/debug.db.routes")(app)
@@ -20,6 +25,12 @@ if (process.argv.includes("devmode")){
 const server = http.createServer(app);
 const io = socketio(server);
 require("./server/drawmap/js/drawmap.server")(app, io);
+
+// chat
+const chat = require("./server/chat")
+chat.server(app, io);
+
+
 
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));

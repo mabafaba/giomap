@@ -1,0 +1,78 @@
+<!-- io -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="../chat/js/chat.js"></script>
+
+<div class="chat">
+    <h1>Chat</h1>
+    <div id="chat-window">
+    </div>
+</div>
+
+
+<script>
+// load io object from socket.io script
+const socket = io({
+        path: "/drawmap-socket-io"
+    })
+chatContainer = document.querySelector('#chat-window')
+chatio.init(chatContainer, socket);
+
+
+</script>
+
+
+<style>
+
+#chat-window {
+    height: 300px;
+    width:200px;
+    overflow-y: scroll;
+    border: 1px solid black;
+    padding: 10px;
+    margin: 10px;
+}
+
+#chat-message-display {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 10px;
+    height: 80%;
+    overflow-y: scroll;
+}
+
+#chat-message-display div {
+    margin: 5px;
+    padding: 5px;
+    /* border: 1px solid black; */
+    border-radius: 5px;
+    background-color: rgb(98, 49, 98);
+    color: white;
+    max-width: 80%;
+    height: auto;
+    word-wrap: break-word
+
+}
+
+#chat-form {
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* align-items: flex-start; */
+    margin: 10px;
+    width: 100%;
+    /* algin content to right */
+    justify-content: right;
+}
+
+#chat-form input {
+    width: 20%;
+    margin: 5px;
+}
+#chat-form button {
+    /* width: 20%;
+    height:40px */
+}
+
+
+
+</style>

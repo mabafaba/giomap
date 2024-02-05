@@ -14,7 +14,6 @@ const { authorizeBasic } = require("../../users");
 const { authorizeToken } = require("../../users/js/users.authorize");
 const turf = require('@turf/turf');
 const {feature2Dify} = require('./drawmap.utils');
-console.log('feature2Dify:', feature2Dify);
 
 module.exports = function(app, io){
   
