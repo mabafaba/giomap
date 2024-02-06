@@ -18,6 +18,7 @@ module.exports = function(app){
     });
     
     
+    
     // get all users from db
     app.get('/debug/users', async function(req, res){
         const users = await User.find();
@@ -29,6 +30,12 @@ module.exports = function(app){
         await MapDrawing.collection.drop();
         await MapCanvas.collection.drop();
         res.send("drawmap entries dropped!")
+    });
+
+    // delete specific map
+    app.get('/debug/deletemap/:id', async function(req, res){
+        await MapDrawing.findByIdAndDelete(req.params.id);
+        res.send("drawmap entry dropped!")
     });
     
     
