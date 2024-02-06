@@ -67,6 +67,7 @@ chatio = {
 
 
     },
+    
     messageContainer: function() {
         const container = document.createElement('div');
         container.setAttribute('id', 'chat-message-display');

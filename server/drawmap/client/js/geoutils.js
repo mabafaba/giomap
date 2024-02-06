@@ -4,6 +4,9 @@ function LayerToGeoJson(layer) {
     if (layer instanceof L.Circle) {
         json.properties.radius = layer.getRadius();
     }
+    else if (layer instanceof L.CircleMarker) {
+        json.properties.markerType = 'circle';
+    }
     
     return json;
 }
@@ -14,9 +17,15 @@ function GeoJsonToLayer(data) {
     
     L.geoJSON(data, {
         pointToLayer: (feature, latlng) => {
+            // handle circles
             if (feature.properties && feature.properties.radius) {
                 return new L.Circle(latlng, feature.properties.radius);
-            } else {
+            }
+            // handle circlemarkers
+            else if (feature.properties && feature.properties.markerType === 'circle') {
+                return new L.CircleMarker(latlng);
+            }
+            else {
                 return new L.Marker(latlng);
             }
         },

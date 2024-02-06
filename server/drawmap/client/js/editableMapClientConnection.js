@@ -5,6 +5,8 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
         mapCanvasShareLinkId: mapCanvasShareLinkId,
         onEachNewFeature: onEachNewFeature,
         editingLayer: null,
+        controls: [],
+        user: null,
         socket: io(),
         init: function (map) {
             // Initialise the FeatureGroup to store editable layers
@@ -18,20 +20,94 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     this.editingLayer.addTo(map);
                 }
             }
-            this.addEditingControls(this.map);
-            this.connectMapToServer(this.map, this.editingLayer);
-            
+
+            fetch('/drawmap/user/me')
+            // catch unauthorized
+            .then(response => {
+                if (response.status === 401) {
+                    console.log('Not authorized');
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if(data){
+                    this.user = data;
+                    // asign random color to user (hex)
+                    this.user.color = '#'+Math.floor(Math.random()*16777215).toString(16);
+                    console.log('user color', this.user.color);
+                    
+                    console.log('user', this.user);
+
+                }
+                this.addEditingControls(this.map);
+                this.connectMapToServer(this.map, this.editingLayer);
+            });
+
         },
         
         addEditingControls: function (map) {
+
+            // remove all controls
+            this.controls.forEach((control)=>{
+                map.removeControl(control);
+            }
+            );
+            this.controls = [];
             
             // Initialise the draw control and pass it the FeatureGroup of editable layers
+            // set all drawing options color to user color
+            // no fill!!!!
+            //  edit: {
+                // featureGroup: this.editingLayer
+            // }
             var drawControl = new L.Control.Draw({
+                draw: {
+                    polyline: {
+                        shapeOptions: {
+                            color: this.user.color,
+                            fill: false
+                        }
+                    },
+                    polygon: {
+                        shapeOptions: {
+                            color: this.user.color,
+                            fill: false
+                        }
+                    },
+                    circle: {
+                        shapeOptions: {
+                            color: this.user.color,
+                            fill: false
+
+                        }
+                    },
+                    rectangle: {
+                        shapeOptions: {
+                            color: this.user.color,
+                            fill: false
+
+                        },
+                    // remove marker from draw control
+                    },
+                    circlemarker:
+                     {
+                        shapeOptions: {
+                            color: this.user.color,
+                            fill: false
+
+                        }
+                    },
+                    marker: false
+                },
                 edit: {
                     featureGroup: this.editingLayer
                 }
             });
+
             this.map.addControl(drawControl);
+            this.controls.push(drawControl);
+
             
             L.Control.UploadGeoJson = L.Control.extend({
                 onAdd: function(map) {
@@ -67,6 +143,9 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 }
                 
                 L.control.uploadgeojson({ position: 'topright' }).addTo(map);
+                this.controls.push(L.control.uploadgeojson);
+
+
             },
             
             
@@ -104,6 +183,9 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     
                     // add layer to map
                     newLayer.forEach( l => editingLayer.addLayer(l) );
+
+                    // style
+                    newLayer.forEach( l => this.styleGeometry(l) );
                     
                     
                 });
@@ -133,14 +215,20 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 map.on('draw:created', (e) => {
                     var type = e.layerType,
                     layer = e.layer;
-                    
+
                     // add popup to layer
                     this.onEachNewFeature(layer);
-                    editingLayer.addLayer(layer);
+                    
+                    // add user 
+                    // layer.feature.properties.user = this.user;
                     // layerWithPopup.openPopup();
                     setTimeout(function(){layer.openPopup();}, 0); // waiting 0ms resolves the popup not opening when a rectangle is created by dragging instead of two clicks
+                    
+                    editingLayer.addLayer(layer);
                     // save layer to server
                     this.saveLayerToServer(layer);
+
+
                     
                     
                 });
@@ -210,6 +298,13 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 
                 // add uuid to feature if it doesn't exist yet
                 feature.properties.uuid = feature.properties.uuid || crypto.randomUUID();
+
+                // add user to feature
+                feature.properties.createdBy = this.user;
+
+                // add color to feature
+                feature.properties.color = this.user.color;
+                this.styleGeometry(layer);
                 console.log("sending geometries!", LayerToGeoJson(layer));
                 this.socket.emit('iMadeAGeometry!', {"layer": LayerToGeoJson(layer), "mapcanvasShareLinkId": mapCanvasShareLinkId});
                 
@@ -239,16 +334,63 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     data = data.map(x=>x.feature);
                     // add geojson to editingLayer
                     var geojsonLayer = GeoJsonToLayer(data);
+
+                    
+
                     geojsonLayer.forEach(
                         (l)=>{
                             this.onEachNewFeature(l);
                             targetLayer.addLayer(l);
+                            // style
+                            console.log('styling', l);
+                            this.styleGeometry(l);
                             
                         });
+
+                    // check if there's already a geometry by this user and if yes, copy color to this.user.color
+                    geojsonLayer.forEach((l)=>{
+                        
+                        if(l.feature.properties.createdBy._id == this.user.id){
+                            if(l.feature.properties.color){
+                                console.log('changing user color', this.user.color);
+                                this.user.color = l.feature.properties.color;
+                                // stop loop
+                                return;
+                            }
+                            
+                        }   
+                    }
+                    );
+                    // update draw control options
+                    this.map.removeControl(this.drawControl);
+                    this.addEditingControls(this.map);
+
                         
                     });
                     
-                }
+                },
+                changeDrawingColor: function (color) {
+                    console.log('changing color to:', color);
+                    this.user.color = color;
+                    // edit draw control options
+                    this.map.removeControl(this.map.drawControl);
+                    this.addEditingControls(this.map);
+
+
+                },
+                styleGeometry: function(layer){
+                    color = layer.feature.properties.color ? layer.feature.properties.color : "#FF0000";
+                    
+                    if(layer.setStyle){
+                        layer.setStyle({color: color, fill: false});
+                    }else{
+                        console.log('no setStyle metho in', layer);
+
+                    }
+
+            
+            
+                },
                 
             }
             mapio.init(map);
