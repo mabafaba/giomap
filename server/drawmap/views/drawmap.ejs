@@ -25,6 +25,10 @@
     <script src="../js/geoutils.js"></script>
     <script src="../js/editableMapClientConnection.js"></script>
     
+    <!-- color picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"/>
+    <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
+
     <!-- <div id="cover" style="background-color:aquamarine;position:fixed;width:100%;height:100%;z-index:3000;left:0;top:0"></div> -->
     <!-- <button id="gotome" style="position:fixed;left:50%;top:50%;z-index:3001;" onclick="goToUser()">Go to me!</button> -->
     <!-- post data div -->
@@ -207,6 +211,8 @@
                                 geojson.features.forEach(function(feature){
                                     // add uuid to feature
                                     feature.properties.uuid = crypto.randomUUID();
+
+                                    feature.properties.color = mapio.user.color;
                                     
                                     
                                     // send to server 
@@ -344,6 +350,14 @@
                         color:black;
                         margin: auto;
                         padding-top:5px;
+                    }
+
+
+                    .leaflet-div-icon {
+                        margin-left: -4px !important;
+                        margin-top: -4px !important;
+                        width: 8px !important;
+                        height: 8px !important;
                     }
 
                 </style>
