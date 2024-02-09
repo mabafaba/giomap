@@ -110,7 +110,6 @@ function saveMap (event) {
     // get map view
     const mapView = getMapPerspective();
     
-    console.log(name);
 
     // send data to server
     fetch('/drawmap/create', {
@@ -134,7 +133,6 @@ function saveMap (event) {
         
     }) // redirect to map edit page
     .then(res => {
-        console.log(res);
         window.location.href = '/drawmap/shared/' + res.shareLinkId;
     })
 
@@ -149,7 +147,6 @@ function cancelMap (event) {
 
 function getMapPerspective() {
     const center = map.getCenter();
-    console.log([center.lat, center.lng]);
     return {
       center: [center.lat, center.lng],
       zoom: map.getZoom()

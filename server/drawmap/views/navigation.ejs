@@ -290,7 +290,6 @@ button {
   fetch('/drawmap/user/me')
   .then(response => response.json())
   .then(data => {
-    console.log('USER',data.username);
     // set username in menu
     document.getElementById("username").innerHTML = data.username;
   })

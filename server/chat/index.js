@@ -28,12 +28,9 @@ const server = function(app, io){
     // io chat messages
 
     io.on('connection', (socket) => {
-        console.log('a user connected');
         socket.on('disconnect', () => {
-            console.log('user disconnected');
         });
         socket.on('chat message', (msg) => {
-            console.log('message: ' + msg);
             // broadcast message to all connected clients except the one who sent the message
             socket.broadcast.emit('chat message', msg);
         });

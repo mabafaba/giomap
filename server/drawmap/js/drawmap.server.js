@@ -66,13 +66,11 @@ module.exports = function(app, io){
       const token = socket.request.cookies.jwt;
       // if no token, return
       if (!token) {
-        console.log('no token');
         socket.emit('notAuthorized', {success: false, message: "Not authorized, token not available"});
         return {success: false, message: "Not authorized, token not available"};
       }
       // verify JWT
       const verified = await authorizeToken(token, ["admin", "basic"]);
-      console.log('verified:', verified);
       // if not verified, send error message to user
       if (!verified.success) {
         socket.emit('notAuthorized', verified);
@@ -104,7 +102,6 @@ module.exports = function(app, io){
       const mapCanvas = await MapCanvas.findOne({shareLinkId: mapcanvasShareLinkId});
       // if not found, return
       if (!mapCanvas) {
-        console.log('mapcanvas '+mapcanvasShareLinkId+' not found');
         throw new Error('mapcanvas '+mapcanvasShareLinkId+' not found');
       }
       
@@ -164,18 +161,14 @@ module.exports = function(app, io){
           socket.emit('notAuthorized', verified);
         return;
       }
-      console.log(`${socket.id} deleted geometry: ${data}`);
       must(data && data.properties && data.properties.uuid, "geometry must have a uuid property");
       const deleted = await MapDrawing.deleteOne({"feature.properties.uuid": data.properties.uuid});
-      console.log('deleted:', deleted);
       // broadcast to mapcanvasShareLinkId room
-      // socket.broadcast.to(mapcanvasShareLinkId).emit('someoneDeletedAGeometry!', data);
       socket.broadcast.emit('someoneDeletedAGeometry!', data);
     })
 
 
     socket.on("iUploadedGeometriesFromFile!", async json => {
-      console.log('iUploadedGeometriesFromFile!', json);
 
       // flatten each feature in the json.layer array with turf.flatten
       // then send each feature to receiveGeometry
@@ -192,8 +185,6 @@ module.exports = function(app, io){
        saveGeometry(newJson, socket)
         .then((data) => {
           // broadcast to mapcanvasShareLinkId room
-          console.log('broadcasting to room:', json.mapcanvasShareLinkId);
-          // send to all users in the room including sender
           io.to(json.mapcanvasShareLinkId).emit('someoneMadeAGeometry!', data);
 
         })

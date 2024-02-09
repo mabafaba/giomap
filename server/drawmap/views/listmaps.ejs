@@ -163,17 +163,14 @@ document.addEventListener('alpine:init', () => {
             })
             .then(response => response.json())
             .then(data => {
-                console.log(data);
                 this.maps = data;
             })
             .catch(err => console.log(err));
 
         },
         deleteMap: function(shareLinkId, confirmed = false) {
-            console.log('delete map', shareLinkId);
             // if not confirmed, open dialogue
             if(!confirmed) {
-            
                 show_prompt('Delete Map', 'Are you sure you want to delete this map?', 
             false, 'Cancel',
              'Delete',
@@ -188,7 +185,6 @@ document.addEventListener('alpine:init', () => {
                     }
                 })
                 .then(res => {
-                    console.log(res);
                     if(res.status === 200) {
                         return res.json();
                     } else {
@@ -196,7 +192,6 @@ document.addEventListener('alpine:init', () => {
                     }
                 })
                 .then(res => {
-                    console.log(res);
                     // remove map from list
                     this.maps = this.maps.filter(map => map.shareLinkId !== shareLinkId);
                     // show alert

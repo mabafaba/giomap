@@ -20,7 +20,6 @@
 </div>
 <script>
 function show_prompt(title, message, pribtnHide = false, pribtnLabel = "Close", secBtnLabel = '', secBtnAction = '') {
-  console.log("showing prompt");
   // log action fun
 
     document.getElementById("modal-alert-title").innerHTML = title;
@@ -31,10 +30,8 @@ function show_prompt(title, message, pribtnHide = false, pribtnLabel = "Close", 
         document.getElementById("modal-button-primary").style.display = "inline-block";
     }
     document.getElementById("modal-button-primary").innerText = pribtnLabel;
-    console.log("should i set onclick?");
     if (secBtnLabel != '' && secBtnAction != '') {
         // yes
-        console.log("setting onclick");
         document.getElementById("modal-button-secondary").innerText = secBtnLabel;
         document.getElementById("modal-button-secondary").setAttribute('onclick', secBtnAction);
         document.getElementById("modal-button-secondary").style.display = "inline-block";

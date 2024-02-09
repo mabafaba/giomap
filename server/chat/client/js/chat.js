@@ -1,4 +1,3 @@
-console.log('loading chat.js');
 chatio = {
     messages: [],
     container: null,
@@ -12,9 +11,7 @@ chatio = {
         if (!this.container) {
             console.error("Container not found");
             return;
-        }
-        console.log('chatio in:', this);
-        
+        }        
         // add message container to container
         this.messageContainer = this.messageContainer();
         this.container.appendChild(this.messageContainer);
@@ -37,7 +34,6 @@ chatio = {
         // add event listener to the socket
         
         this.socket.on('chat message', (msg) => {
-            console.log('message received: ' + msg);
             this.addMessage(msg);
         }
         );
@@ -47,13 +43,10 @@ chatio = {
     },
 
     sendMessage: function(msg) {
-        console.log('sending message:', msg);
         this.addMessage(msg);
-        this.socket.emit('chat message', msg);
     },
 
     addMessage : function(msg) {
-        console.log('adding message:', msg);
         this.messages.push(msg);
         const message = document.createElement('div');
         message.textContent = msg;
@@ -67,7 +60,7 @@ chatio = {
 
 
     },
-    
+
     messageContainer: function() {
         const container = document.createElement('div');
         container.setAttribute('id', 'chat-message-display');
@@ -94,8 +87,6 @@ chatio = {
         // add event listener to the form
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            console.log('submitting form',e);
-            console.log('input', input.value);
 
             if (input.value) {
                 this.sendMessage(input.value);
@@ -108,4 +99,3 @@ chatio = {
     
 }
 
-console.log('chat.js loaded', chatio);

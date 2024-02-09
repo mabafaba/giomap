@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken");
 const must = require("../../utils/must");
 require('dotenv').config();
 // JWT secret must be set in .env file in the root folder of the project
-console.log("process.env", process.env);
 const jwtSecret = process.env.JWT_SECRET;
 if(!jwtSecret) {
   throw new Error("you need to add a variable JWT_SECRET with a JWT secret to a .env file in the root folder (not part of the git repository as it is a secret)");
@@ -61,13 +60,11 @@ const createNewUser = async (userinfo, UserModelExtension) => {
 
   const registerUser = async (req, res, next) => {
     const { username, password } = req.body;
-    console.log("registering user", username,password);
     // if (password.length < 6) {
     //   return res.status(400).json({ message: "Password less than 6 characters" });
     // }
    createNewUser({username, password})
         .then((user) => {
-          console.log("u:",user)
           const maxAge = 3 * 60 * 60;
           const token = jwt.sign(
             { id: user._id, username, role: user.role },
@@ -87,14 +84,12 @@ const createNewUser = async (userinfo, UserModelExtension) => {
           });
         })
         .catch((error) =>{
-          console.log("user creation failed")
           res.status(400).json({
             message: "User not successful created",
             error: error.message,
           })
         }
         );
-    console.log("registering complete.")
   };
   
   const loginUser = async (req, res, next) => {
@@ -191,7 +186,6 @@ const createNewUser = async (userinfo, UserModelExtension) => {
   };
   
   const deleteUser = async (req, res, next) => {
-    console.log('deleteUser', req.body);
     const { id } = req.body;
     await User.deleteOne({
       _id: id

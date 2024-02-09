@@ -112,7 +112,6 @@ function getMapDetails () {
         }
     })
     .then(res => {
-        console.log(res);
         // set map name
         document.getElementById('name').value = res.name;
         // set map description
@@ -133,7 +132,6 @@ function updateMap (event) {
     // get map view
     const mapView = getMapPerspective();
     
-    console.log(name);
     // get map id from url
     url = window.location.href;
     mapId = url.substring(url.lastIndexOf('/') + 1);
@@ -160,7 +158,6 @@ function updateMap (event) {
         
     }) // redirect to map edit page
     .then(res => {
-        console.log(res);
         window.location.href = '/drawmap/list/';
     })
 
@@ -175,7 +172,6 @@ function cancelMap (event) {
 
 function getMapPerspective() {
     const center = map.getCenter();
-    console.log([center.lat, center.lng]);
     return {
       center: [center.lat, center.lng],
       zoom: map.getZoom()

@@ -160,10 +160,8 @@
                     
                     updateGridControlButtonVisibility = function(){
                         if(map.getZoom() <= graticule.minZoom){
-                            console.log('zoomed out too far');
                             document.getElementById('toggleGrid').style.display = 'none';
                         } else {
-                            console.log('zoomed in enough');
                             document.getElementById('toggleGrid').style.display = 'block';
                         }
                     }
@@ -216,8 +214,6 @@
                                     
                                     
                                     // send to server 
-                                    console.log('emitting iUploadedGeometriesFromFile!');
-                                    console.log(mapio.mapCanvasShareLinkId);
                                     mapio.socket.emit('iUploadedGeometriesFromFile!',
                                         {layer: feature, mapcanvasShareLinkId: mapio.mapCanvasShareLinkId}
                                     );
@@ -299,9 +295,7 @@
                             document.getElementById("popupForm").addEventListener("cancel", submitPopupForm);
                             
                             
-                            console.log('popup has been opened');
                         });
-                        console.log('created popup with form & event listener');
                         
                         return layer;
                         

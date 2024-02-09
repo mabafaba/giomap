@@ -10,7 +10,6 @@ const MapDrawing = require('./mapdrawing.model');
 
     authorizeAndRedirect = [authorizeBasic, (req, res, next) => {
         if (req.body.authorized) {
-            console.log('authorized');
             next();
         } else {
             res.redirect('/drawmap/user/login');
@@ -25,7 +24,7 @@ const MapDrawing = require('./mapdrawing.model');
     });
     
     
-    router.route('/geojson/:shareLinkId')
+    router.route('/rawgeojson/:shareLinkId')
     .get(authorizeAndRedirect, async (req, res) => {
         // find corresponding mapcanvas
         MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
@@ -44,6 +43,61 @@ const MapDrawing = require('./mapdrawing.model');
             // only keep user id and username
             mapCanvas.mapdrawings = await MapDrawing.populate(mapCanvas.mapdrawings, { path: 'createdBy', select: 'i_d username' });
             // copy user data to properties
+            console.log('mapdrawings pre', mapCanvas.mapdrawings);
+            geojson = mapCanvas.mapdrawings.map((mapdrawing) => {
+                // convert to object
+                console.log("map drawing!", mapdrawing);
+                mapdrawing = mapdrawing.toObject();
+                mapdrawing.feature.properties.createdBy = mapdrawing.createdBy;
+                mapdrawing.feature.properties._id = mapdrawing._id;
+                mapdrawing.feature.properties.mapCanvasId = mapdrawing.mapcanvas;
+                mapdrawing.feature.type = 'Feature';
+
+                // remove top level properties
+                delete mapdrawing.createdBy;
+                delete mapdrawing.mapcanvas;
+                delete mapdrawing._id;
+                console.log("map drawing edited!", mapdrawing);
+                return mapdrawing.feature;
+            });
+            // wrap into feature collection
+            featureCollection = {
+                type: 'FeatureCollection',
+                features: geojson
+            }
+            return featureCollection;
+            
+        })
+        .then((featureCollection) => {
+            res.send(featureCollection);
+        })
+        .catch((err) => {
+            console.log('Could not get GeoJSON', err);
+        });
+    }
+    );
+
+
+    router.route('/geojson/:shareLinkId')
+    .get(authorizeAndRedirect, async (req, res) => {
+        // find corresponding mapcanvas
+        MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
+        .then((mapCanvas) => {
+            // if not found, dont handle this request
+            if (!mapCanvas) {
+                res.status(404).send('This map does not exist!');
+            }
+            return mapCanvas;
+        })
+        .then((mapCanvas) => {
+            return mapCanvas.populate('mapdrawings')
+        })
+        .then(async (mapCanvas) => {
+            // populate user details for all mapdrawings
+            // only keep user id and username
+
+            mapCanvas.mapdrawings = await MapDrawing.populate(mapCanvas.mapdrawings, { path: 'createdBy', select: 'i_d username' });
+            // copy user data to properties
             mapCanvas.mapdrawings.forEach((mapdrawing) => {
                 mapdrawing.feature.properties.createdBy = mapdrawing.createdBy;
             });
@@ -58,6 +112,8 @@ const MapDrawing = require('./mapdrawing.model');
         });
     }
     );
+
+
     
     router.route( '/list/json')
     .get(authorizeAndRedirect, async (req, res) => {
@@ -67,8 +123,6 @@ const MapDrawing = require('./mapdrawing.model');
         allMaps = await MapCanvas.populate(allMaps, { path: 'createdBy', select: 'i_d username' });
         allMapsJson = allMaps.map((map) => {
             mapObj = map.toObject();
-            console.log('mapObj', mapObj);
-            console.log('req.body.user.id', req.body.user.id);
             if (mapObj.createdBy._id == req.body.user.id) {
                 mapObj.userIsCreator = true;
             } else {

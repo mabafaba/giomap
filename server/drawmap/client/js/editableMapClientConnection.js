@@ -14,7 +14,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
         init: function (map) {
             // Initialise the FeatureGroup to store editable layers
             if(!editingLayer){
-                console.log('no editingLayer provided, creating new one');
                 this.editingLayer = new L.FeatureGroup();
                 this.editingLayer.addTo(map);
                 this.layers.push({layer:this.editingLayer, name: 'shared'});
@@ -38,11 +37,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 if(data){
                     this.user = data;
                     // asign random color to user (hex)
-                    this.user.color = '#'+Math.floor(Math.random()*16777215).toString(16);
-                    console.log('user color', this.user.color);
-                    
-                    console.log('user', this.user);
-                    
+                    this.user.color = '#'+Math.floor(Math.random()*16777215).toString(16);                    
                 }
                 this.addEditingControls(this.map);
                 this.connectMapToServer(this.map, this.editingLayer);
@@ -53,7 +48,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
         addEditingControls: function (map) {
             
             
-            console.log("controls", this.controls);
             // remove all controls
             this.controls.forEach((control)=>{
                 map.removeControl(control);
@@ -166,7 +160,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 //         controlDiv.innerHTML = '<div class="layer-selection" style="display: flex; align-items: center; justify-content: center; gap: 5px; background:#FFFFFF;padding:4px;"><label for="layer-selection">Layer:</label><input type="radio" id="layer-selection" name="layer-selection" value="editing" checked><label for="editing">Editing</label><input type="radio" id="layer-selection" name="layer-selection" value="background"><label for="background">Background</label></div>';
                         
                 //         controlDiv.addEventListener('click', function(e){
-                //             console.log('layer selection', e.target.value);
                 //             if(e.target.value == 'editing'){
                 //                 map.removeLayer(mapio.backgroundLayer);
                 //                 map.addLayer(mapio.editingLayer);
@@ -209,18 +202,13 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
             
             listenForIncomingEdits: function (map, editingLayer) {
                 this.socket.on('someoneMadeAGeometry!', (geojsonFeature)=>{
-                    console.log('received geometries!', geojsonFeature);
                     newLayer = GeoJsonToLayer(geojsonFeature);
                     
                     // remove layer if it already exists
                     var newuuid = geojsonFeature.properties.uuid;
                     
                     editingLayer.eachLayer(function (layer) {
-                        console.log('layer',layer);
-                        console.log('layer.feature.properties.uuid',layer.feature.properties.uuid);
                         if(layer.feature.properties.uuid == newuuid){
-                            console.log('layer already exists');
-                            console.log('removing layer',layer);
                             editingLayer.removeLayer(layer);
                         }
                     });
@@ -240,7 +228,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 });
                 
                 this.socket.on('someoneDeletedAGeometry!', (geojsonFeature)=>{
-                    console.log('received geometries!', geojsonFeature);
                     newLayer = GeoJsonToLayer(geojsonFeature);
                     var uuid = geojsonFeature.properties.uuid;
                     // var geojsonLayer = L.geoJson(geojsonFeature);
@@ -248,7 +235,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     // remove layer with uuid from editingLayer
                     editingLayer.eachLayer(function (layer) {
                         if(layer.feature.properties.uuid == uuid){
-                            console.log('removing layer',layer);
                             editingLayer.removeLayer(layer);
                         }
                     });
@@ -354,7 +340,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 // add color to feature
                 feature.properties.color = this.user.color;
                 this.styleGeometry(layer);
-                console.log("sending geometries!", LayerToGeoJson(layer));
                 this.socket.emit('iMadeAGeometry!', {"layer": LayerToGeoJson(layer), "mapcanvasShareLinkId": mapCanvasShareLinkId});
                 
             },
@@ -364,8 +349,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
             },
             
             addGeometriesFromServerToLayer: async function (endpoint, targetLayer) {
-                console.log('EDITINGLAYER', this.editingLayer);
-                console.log('TARGETLAYER', targetLayer);
                 fetch(endpoint)
                 // check status
                 .then(response => {
@@ -390,8 +373,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                         (l)=>{
                             this.onEachNewFeature(l);
                             targetLayer.addLayer(l);
-                            // style
-                            console.log('styling', l);
                             this.styleGeometry(l);
                             
                         });
@@ -401,7 +382,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                             
                             if(l.feature.properties.createdBy._id == this.user.id){
                                 if(l.feature.properties.color){
-                                    console.log('changing user color', this.user.color);
                                     this.user.color = l.feature.properties.color;
                                     // stop loop
                                     return;
@@ -418,7 +398,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     
                 },
                 changeDrawingColor: function (color) {
-                    console.log('changing color to:', color);
                     this.user.color = color;
                     // edit draw control options
                     this.addEditingControls(this.map);
@@ -430,9 +409,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     
                     if(layer.setStyle){
                         layer.setStyle({color: color, fill: false});
-                    }else{
-                        console.log('no setStyle metho in', layer);
-                        
                     }
                     
                     
@@ -441,6 +417,5 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 
             }
             mapio.init(map);
-            console.log('mapio',mapio);
             return mapio;
         }

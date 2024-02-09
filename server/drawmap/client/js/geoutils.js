@@ -13,7 +13,6 @@ function LayerToGeoJson(layer) {
 
 function GeoJsonToLayer(data) {
     const layers = [];
-    console.log('converting to layer',data);
     
     L.geoJSON(data, {
         pointToLayer: (feature, latlng) => {
@@ -33,6 +32,5 @@ function GeoJsonToLayer(data) {
             layers.push(layer);
         },
     });
-    console.log("layers created from geojson",layers);
     return layers;
 };

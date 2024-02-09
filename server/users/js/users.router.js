@@ -21,7 +21,6 @@ router.route("/all").get(getAllUsers);
 router.route("/me").get(authorizeBasic,
   // unauthorized users 401
   (req, res) => {
-    console.log('auth send', req.body);
     if (req.body.authorized) {
       res.send(req.body.user);
     } else {
