@@ -300,7 +300,7 @@ button {
   var url = window.location.href;
   var mapId = url.substring(url.lastIndexOf('/') + 1);
   // set download link
-  document.getElementById('nav-datadownload').querySelector('a').href =  "/drawmap/geojson/" + mapId;
+  document.getElementById('nav-datadownload').querySelector('a').href =  "/drawmap/rawgeojson/" + mapId;
   
   
   const page = <%- JSON.stringify(page) %>;
