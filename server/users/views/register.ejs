@@ -10,6 +10,8 @@
   <title>Register</title>
 </head>
 <body>
+  <img id="giologo" src="../../drawmap/graphics/gio_logo.svg" alt="GIO logo" >
+
   <h1>Register</h1>
   <form >
     <div class="error" style="background-color: red;"></div><br>
@@ -20,7 +22,9 @@
     <input type="submit" value="register"><br>
   </form>
   <a href="./user/login">Already registered? Login</a>
-
+  <a href="https://unitac.un.org">
+    <img id="unitaclogo" src="../../drawmap/graphics/unitac_logo_bw.svg" alt="UNITAC logo" >
+  </a>
   <script>
     const form = document.querySelector('form')
     const username = document.querySelector('#username')
@@ -68,4 +72,39 @@
 
   </script>
 </body>
+
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  input {
+    margin: 5px;
+  }
+
+  a {
+    margin-top: 10px;
+  }
+
+  #giologo {
+    width: 20%;
+
+  }
+  #unitaclogo {
+    margin-top: 100px;
+    min-width: 100px;
+    min-height: 100px;
+  }
+</style>
 </html>

@@ -1,7 +1,10 @@
 
 <div id="header">
-  
-  <!-- <img src="../../drawmap/csllogo_white.png" alt="CSL logo"> -->
+  <!-- image that links new tab-->
+  <a href="https://unitac.un.org/" target="_blank">
+    <img src="../../drawmap/graphics/unitac_logo_bw.svg" alt="UNITAC logo" >
+  </a>
+  <img id="giologo" src="../../drawmap/graphics/gio_logo.svg" alt="GIO logo" >
 
   <div class="menu-container">
     
@@ -10,7 +13,9 @@
       <span></span>
       <span></span>
       <span></span>
+     
       <ul id="menu">
+        <li id='giologo'> <img id="giologomenu" src="../../drawmap/graphics/gio_logo.svg" alt="GIO logo" ></li>
         <li id='nav-sharemap'><a  href="#">Share Map</a></li>
         <li id="nav-datadownload"><a href="" target="_blank">Download Shapes</a></li>
         <li id='nav-maplist'><a href="/drawmap/list">All Maps</a></li>
@@ -57,7 +62,8 @@
 
 #header img {
                 margin: 15px;
-                height: 20px;
+                height: 50px;
+                transition: height 0.5s;
                 /* always keep on top right corner */
                 position: absolute;
                 top: 0;
@@ -80,6 +86,24 @@
                 }
             }
 
+            
+
+/* larger header img on hover; transition both on hover on and when stop hovering*/
+#header a img:hover {
+  height: 150px;
+  transition: height 0.5s;
+}
+
+#giologo {
+  /* margin: 15px; */
+  height: 50px;
+  transition: height 0.5s;
+  /* always keep on top right corner */
+  position: absolute;
+  top: 0;
+  right: 70 !important;
+  animation: constantly_changing_opacity_infitine_loop 7s infinite !important;
+}
 
 /* animation to rotate from 0 degree to +1 degree, -1 degree and back */
 

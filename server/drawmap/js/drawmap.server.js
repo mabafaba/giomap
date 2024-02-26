@@ -37,6 +37,9 @@ module.exports = function(app, io){
     }
   })
 
+  // add client side graphics to existing app static paths
+  app.use('/drawmap/graphics', express.static(path.join(__dirname, '../client/graphics')));
+
 
   // add views/drawmap.ejs as a view on route /drawmap
   const router = require("./drawmap.router");
