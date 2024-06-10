@@ -7,7 +7,7 @@
     "start": "node server",
     "dev": "nodemon server devmode",
     "docker": "docker build -t mapdraw . && docker compose up",
-    "deploy": "git pull && docker build -t drawmap . && docker compose up" 
+    "deploy": "git pull && docker build -t mapdraw . && docker compose up" 
   },
   "author": "Brad Traversy",
   "license": "MIT",

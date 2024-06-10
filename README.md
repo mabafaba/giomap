@@ -84,6 +84,30 @@ npm run dev
 
 App runs at localhost:3000 by default.
 
+## NGINX configuration
+
+```
+location /drawmap {
+        proxy_pass http://localhost:3000/drawmap;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+}
+
+location /drawmap-socket-io {
+        proxy_pass http://localhost:3000/drawmap-socket-io;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+}
+
+
+```
+
 # Stack
 
 - Server: [Node.js](https://nodejs.org/en/), [Express](https://expressjs.com/), [Socket.io](https://socket.io/)
