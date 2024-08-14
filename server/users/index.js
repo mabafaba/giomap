@@ -1,9 +1,5 @@
 
-// import users.server as server - here comes code:
-// import all other js files here so that they can be imported from a single file
-// rquire all other js files here so that they can be imported from a single file
-
-
+// This file is the entry point for the users module. It imports all the necessary files and exports them as a single object.
 const users = function(app, parentRoute){
     const authorizeAdmin = require("./js/users.authorize").authorizeAdmin
     const authorizeBasic = require("./js/users.authorize").authorizeBasic
@@ -11,7 +7,7 @@ const users = function(app, parentRoute){
     const server = require("./js/users.server")(app, parentRoute)
     const User = require("./js/users.model")
     
-    const userIndex = {
+    return {
         authorizeAdmin, 
         authorizeBasic,
         loginUser,
@@ -24,7 +20,6 @@ const users = function(app, parentRoute){
         server, // server(app) to add routes, settinggs, views, etc to express app
         User // User model
     }
-    return userIndex;
     
 }
 // add all imports to export

@@ -10,17 +10,6 @@ app.use(express.json())
 users = require("./server/users")(app, "/drawmap");
 // users.server(app, "/drawmap");
 
-
-// chat
-
-
-
-// debugging routes only in devmode
-if (process.argv.includes("devmode")){
-  require("./server/debug.db.routes")(app)
-}
-
-
 // drawmap 
 const server = http.createServer(app);
 const io = socketio(server,
@@ -34,12 +23,8 @@ require("./server/drawmap/js/drawmap.server")(app, io);
 const chat = require("./server/chat")
 chat.server(app, io);
 
-
-
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));
-
-
 
 // log all existing routes to server cosole
 require("./server/utils/logroutes")(app);
@@ -49,16 +34,18 @@ app.get("/", (req, res) => {
   res.redirect("/drawmap/list");
 });
 
+// add debugging routes in devmode
+if (process.argv.includes("devmode")){
+  require("./server/utils/debug.db.routes")(app)
+}
 
 const PORT = process.env.PORT || 3000;
 
-
-// when not in dev mode,  dont stop server on error
+// dont stop server on error (production only)
 if (!process.argv.includes("devmode")){
   process.on("unhandledRejection", (err) => {
     console.log(`An fatal error occurred: ${err.message}`);
   });
 }
-
 
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`)); 

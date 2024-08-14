@@ -10,6 +10,9 @@
     crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"  type="text/javascript"></script>
+    <script src="../../chat/static/js/chat.js"></script>
+    <link rel="stylesheet" href="../../chat/static/css/chatio.css">
+
     <!-- <script src="/drawmap/socket.io/socket.io.js"></script> -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -39,6 +42,8 @@
     <!-- <div x-data="posts" x-init="$store.posts.refreshPosts()" > -->
         <!-- navigation -->
         <%- include('./navigation', {page:"drawmap"}) %> 
+
+        <div id="chatContainer" class="chat"></div>
         
         <div id="map"></div>
         
@@ -66,6 +71,13 @@
         
         <script>
 
+
+            // initialise chat
+            const socket = io({
+              path: "/drawmap-socket-io"
+            })
+            const chatContainer = document.getElementById('chatContainer');
+            chatio.init(chatContainer, socket);
             // popup with map name and map description on page load
             const description = <%- JSON.stringify(mapCanvas.description) %>
             show_prompt('<%= mapCanvas.name %>', description, false, 'OK');
@@ -301,6 +313,13 @@
                         
                     }
                     
+                    // fetch chat html and fill chatContainer
+                    fetch('/chat')
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('chatContainer').innerHTML = html;
+                    });
+
                 </script>
                 
                 
@@ -352,6 +371,20 @@
                         margin-top: -4px !important;
                         width: 8px !important;
                         height: 8px !important;
+                    }
+
+
+                    #chatContainer {
+                        position: fixed;
+                        bottom: 0;
+                        right: 0;
+                        width: 300px;
+                        height: 300px;
+                        z-index: 1000;
+                        background-color: white;
+                        border: 1px solid black;
+                        border-radius: 5px;
+                        overflow: hidden;
                     }
 
                 </style>

@@ -2,8 +2,8 @@
 // It includes routes for dropping users, retrieving all users, and dropping drawmap entries.
 // Should never be included in production!
 
-const {MapDrawing} = require("./drawmap")
-const {MapCanvas} = require("./drawmap")
+const {MapDrawing} = require("../drawmap")
+const {MapCanvas} = require("../drawmap")
 
 
 // log a bright red warning to the console that vulnerable routes are active

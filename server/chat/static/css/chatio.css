@@ -1,37 +1,3 @@
-<!-- io -->
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script src="./chat/js/chat.js"></script>
-
-<!-- <div class="chat"> -->
-    <div id="chat-window">
-    <!-- collapsed icon -->
-    <div id="collapsed-icon" onclick="chatio.toggleChat()">
-        <img src="../../chat/graphics/chat-svgrepo-com.svg" alt="chat icon" width="30px" height="30px">
-    </div>
-    <!-- little x in top right corner to close chat -->
-    <div id="chat-close" onclick="chatio.toggleChat()">
-        x
-    </div>
-
-
-    </div>
-<!-- </div> -->
-
-
-<script>
-// load io object from socket.io script
-// const socket = io({
-//         path: "/drawmap-socket-io"
-//     })
-// chatContainer = document.querySelector('#chat-window')
-// get chat-window child of chatcontainer
-// chatWindow = chatContainer.querySelector('#chat-window')
-// chatio.init(chatContainer, socket);
-
-</script>
-
-
-<style>
 
 .chat {
     /* fixed at bottom right */
@@ -205,5 +171,3 @@
     margin: 10px;
     cursor: pointer;
 }
-
-</style>
