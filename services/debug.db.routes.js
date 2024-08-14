@@ -2,8 +2,8 @@
 // It includes routes for dropping users, retrieving all users, and dropping drawmap entries.
 // Should never be included in production!
 
-const {MapDrawing} = require("./drawmap")
-const {MapCanvas} = require("./drawmap")
+const {mapdrawing} = require("./giomap")
+const {MapCanvas} = require("./giomap")
 
 
 // log a bright red warning to the console that vulnerable routes are active
@@ -27,14 +27,14 @@ module.exports = function(app){
     
     // delete all drawmap entries
     app.get('/debug/dropdrawmap', async function(req, res){
-        await MapDrawing.collection.drop();
+        await mapdrawing.collection.drop();
         await MapCanvas.collection.drop();
         res.send("drawmap entries dropped!")
     });
 
     // delete specific map
     app.get('/debug/deletemap/:id', async function(req, res){
-        await MapDrawing.findByIdAndDelete(req.params.id);
+        await mapdrawing.findByIdAndDelete(req.params.id);
         res.send("drawmap entry dropped!")
     });
     

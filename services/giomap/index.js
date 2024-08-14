@@ -1,11 +1,11 @@
 // Define your drawmap module
-const MapDrawing = require("./js/mapdrawing.model");
+const mapdrawing = require("./js/mapdrawing.model");
 const MapCanvas = require("./js/mapcanvas.model");
-const server = require("./js/drawmap.server");
+const server = require("./js/giomap.server");
 
 // Export the drawmap module
 module.exports = {
-    MapDrawing,
+    mapdrawing,
     MapCanvas,
     server
 };

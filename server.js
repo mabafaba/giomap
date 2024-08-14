@@ -2,22 +2,17 @@ const path = require("path");
 const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
-const mongoose = require("./server/db/db")
+const mongoose = require("./services/db/db")
 const app = express();
 app.use(express.json())
 
 // user management
-users = require("./server/users")(app, "/drawmap");
+users = require("./services/users")(app, "/drawmap");
 // users.server(app, "/drawmap");
-
-
-// chat
-
-
 
 // debugging routes only in devmode
 if (process.argv.includes("devmode")){
-  require("./server/debug.db.routes")(app)
+  require("./services/debug.db.routes")(app)
 }
 
 
@@ -28,11 +23,7 @@ const io = socketio(server,
     path: '/drawmap-socket-io'
   });
 
-require("./server/drawmap/js/drawmap.server")(app, io);
-
-// chat
-const chat = require("./server/chat")
-chat.server(app, io);
+require("./services/giomap/js/giomap.server")(app, io);
 
 
 
@@ -42,7 +33,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 
 // log all existing routes to server cosole
-require("./server/utils/logroutes")(app);
+require("./services/utils/logroutes")(app);
 
 // redirect root route to /drawmap/list
 app.get("/", (req, res) => {

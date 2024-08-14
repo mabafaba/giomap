@@ -1,9 +1,8 @@
 const express = require('express');
-// crypto
 const crypto = require('crypto');
 const router = express.Router();
 const MapCanvas = require('./mapcanvas.model');
-const MapDrawing = require('./mapdrawing.model');
+const mapdrawing = require('./mapdrawing.model');
 
 
     const { authorizeBasic } = require('../../users/js/users.authorize')
@@ -19,7 +18,7 @@ const MapDrawing = require('./mapdrawing.model');
     
     router.route('/geojson')
     .get(authorizeAndRedirect, async (req, res) => {
-        const drawMapEntries = await MapDrawing.find();
+        const drawMapEntries = await mapdrawing.find();
         res.send(drawMapEntries);
     });
     
@@ -41,7 +40,7 @@ const MapDrawing = require('./mapdrawing.model');
         .then(async (mapCanvas) => {
             // populate user details for all mapdrawings
             // only keep user id and username
-            mapCanvas.mapdrawings = await MapDrawing.populate(mapCanvas.mapdrawings, { path: 'createdBy', select: 'i_d username' });
+            mapCanvas.mapdrawings = await mapdrawing.populate(mapCanvas.mapdrawings, { path: 'createdBy', select: 'i_d username' });
             // copy user data to properties
             console.log('mapdrawings pre', mapCanvas.mapdrawings);
             geojson = mapCanvas.mapdrawings.map((mapdrawing) => {
@@ -96,7 +95,7 @@ const MapDrawing = require('./mapdrawing.model');
             // populate user details for all mapdrawings
             // only keep user id and username
 
-            mapCanvas.mapdrawings = await MapDrawing.populate(mapCanvas.mapdrawings, { path: 'createdBy', select: 'i_d username' });
+            mapCanvas.mapdrawings = await mapdrawing.populate(mapCanvas.mapdrawings, { path: 'createdBy', select: 'i_d username' });
             // copy user data to properties
             mapCanvas.mapdrawings.forEach((mapdrawing) => {
                 mapdrawing.feature.properties.createdBy = mapdrawing.createdBy;

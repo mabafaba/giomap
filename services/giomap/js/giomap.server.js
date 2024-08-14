@@ -6,14 +6,14 @@ const app = express();
 const cookieParser = require("cookie-parser");
 const path = require('path');
 const socketIO = require('socket.io');
-const MapDrawing = require('./mapdrawing.model');
+const mapdrawing = require('./mapdrawing.model');
 const MapCanvas = require('./mapcanvas.model');
 
 const must = require('../../utils/must');
 const { authorizeBasic } = require("../../users");
 const { authorizeToken } = require("../../users/js/users.authorize");
 const turf = require('@turf/turf');
-const {feature2Dify} = require('./drawmap.utils');
+const {feature2Dify} = require('./giomap.utils');
 
 module.exports = function(app, io){
   
@@ -42,7 +42,7 @@ module.exports = function(app, io){
 
 
   // add views/drawmap.ejs as a view on route /drawmap
-  const router = require("./drawmap.router");
+  const router = require("./giomap.router");
   app.use("/drawmap", router);
   
 
@@ -109,7 +109,7 @@ module.exports = function(app, io){
       }
       
       // check if uuid already exists in db
-      const existing = await MapDrawing.findOne({"feature.properties.uuid": data.properties.uuid});
+      const existing = await mapdrawing.findOne({"feature.properties.uuid": data.properties.uuid});
       // if it does, update it
       if (existing){
         existing.feature = data;
@@ -120,7 +120,7 @@ module.exports = function(app, io){
 
       } else {
         // if not, create a new entry
-        let drawMapEntry = await MapDrawing.create({
+        let drawMapEntry = await mapdrawing.create({
           feature: data,
           userId: null,
           socketId: socket.id,
@@ -165,7 +165,7 @@ module.exports = function(app, io){
         return;
       }
       must(data && data.properties && data.properties.uuid, "geometry must have a uuid property");
-      const deleted = await MapDrawing.deleteOne({"feature.properties.uuid": data.properties.uuid});
+      const deleted = await mapdrawing.deleteOne({"feature.properties.uuid": data.properties.uuid});
       // broadcast to mapcanvasShareLinkId room
       socket.broadcast.emit('someoneDeletedAGeometry!', data);
     })

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const mapDrawingSchema = new mongoose.Schema({
+const mapdrawingSchema = new mongoose.Schema({
     // geojson feature. must be a valid geojson feature.
     // must contain a geometry object and a properties object
     // the geometry object must contain a type and coordinates
@@ -59,6 +59,6 @@ const mapDrawingSchema = new mongoose.Schema({
     }
 });
 
-const MapDrawing = mongoose.model('mapdrawing', mapDrawingSchema);
+const mapdrawing = mongoose.model('mapdrawing', mapdrawingSchema);
 
-module.exports = MapDrawing;
+module.exports = mapdrawing;

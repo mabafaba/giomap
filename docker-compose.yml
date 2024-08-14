@@ -3,8 +3,8 @@ services:
   web:
     depends_on:
       - mongodb
-    image: mapdraw
-    container_name: mapdraw-web
+    image: giomap
+    container_name: giomap-web
     ports:
       - "3000:3000"
     environment:
@@ -15,11 +15,11 @@ services:
     restart: always
   mongodb:
     image: mongo
-    container_name: mapdraw-mongodb
+    container_name: giomap-mongodb
     restart: always
     volumes:
-      - mapdraw-mongodb-data:/data/db
+      - giomap-mongodb-data:/data/db
 
 volumes:
-  mapdraw-mongodb-data:
+  giomap-mongodb-data:
   jwt_secret_volume:

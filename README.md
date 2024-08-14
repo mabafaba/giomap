@@ -17,14 +17,14 @@ DrawMap is open source and free to use (MIT License).
 If you have node/npm installed:
 
 ```
-git clone https://github.com/mabafaba/mapdraw
+git clone https://github.com/mabafaba/giomap
 cd drawmap
 npm run docker
 ```
 
 Without node/npm installation:
 ```
-git clone https://github.com/mabafaba/mapdraw
+git clone https://github.com/mabafaba/giomap
 cd drawmap
 docker build -t drawmap .
 docker-compose up
@@ -47,7 +47,7 @@ See [MongoDB installation instructions](https://docs.mongodb.com/manual/installa
 
 ### Install node app
 ```
-git clone https://github.com/mabafaba/mapdraw
+git clone https://github.com/mabafaba/giomap
 cd drawmap
 npm install
 ```
