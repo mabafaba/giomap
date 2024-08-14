@@ -28,7 +28,7 @@ module.exports = function(app, io){
   app.use(cookieParser());
   
   // add client side js to existing app static paths
-  app.use('/drawmap/js', express.static(path.join(__dirname, '../client/js')));
+  app.use('/giomap/js', express.static(path.join(__dirname, '../client/js')));
   // log static paths
   console.log('static paths:');
   app._router.stack.forEach(function(r){ 
@@ -38,12 +38,12 @@ module.exports = function(app, io){
   })
 
   // add client side graphics to existing app static paths
-  app.use('/drawmap/graphics', express.static(path.join(__dirname, '../client/graphics')));
+  app.use('/giomap/graphics', express.static(path.join(__dirname, '../client/graphics')));
 
 
-  // add views/drawmap.ejs as a view on route /drawmap
+  // add views/giomap.ejs as a view on route /giomap
   const router = require("./giomap.router");
-  app.use("/drawmap", router);
+  app.use("/giomap", router);
   
 
   io.use((socket, next) => {
@@ -120,18 +120,18 @@ module.exports = function(app, io){
 
       } else {
         // if not, create a new entry
-        let drawMapEntry = await mapdrawing.create({
+        let giomapEntry = await mapdrawing.create({
           feature: data,
           userId: null,
           socketId: socket.id,
           mapcanvas: mapCanvas._id,
           createdBy: verified.user.id
         })
-        const saved = await drawMapEntry.save();
+        const saved = await giomapEntry.save();
         
         // add the new entry to the mapcanvas
         
-        mapCanvas.mapdrawings.push(drawMapEntry._id);
+        mapCanvas.mapdrawings.push(giomapEntry._id);
         await mapCanvas.save();
         
       }

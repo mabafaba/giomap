@@ -1,5 +1,5 @@
 {
-  "name": "drawmap",
+  "name": "giomap",
   "version": "1.0.0",
   "description": "Collaborative Mapping App",
   "main": "server.js",

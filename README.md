@@ -1,8 +1,8 @@
-# Drawmap
+# giomap
 
 
-DrawMap is a web application that allows users to place markers, lines, and polygons on a map - simultaneously and in real time.
-DrawMap is open source and free to use (MIT License).
+giomap is a web application that allows users to place markers, lines, and polygons on a map - simultaneously and in real time.
+giomap is open source and free to use (MIT License).
 
 ## Installation
 
@@ -18,15 +18,15 @@ If you have node/npm installed:
 
 ```
 git clone https://github.com/mabafaba/giomap
-cd drawmap
+cd giomap
 npm run docker
 ```
 
 Without node/npm installation:
 ```
 git clone https://github.com/mabafaba/giomap
-cd drawmap
-docker build -t drawmap .
+cd giomap
+docker build -t giomap .
 docker-compose up
 browser http://localhost:3000
 ```
@@ -48,7 +48,7 @@ See [MongoDB installation instructions](https://docs.mongodb.com/manual/installa
 ### Install node app
 ```
 git clone https://github.com/mabafaba/giomap
-cd drawmap
+cd giomap
 npm install
 ```
 
@@ -87,8 +87,8 @@ App runs at localhost:3000 by default.
 ## NGINX configuration
 
 ```
-location /drawmap {
-        proxy_pass http://localhost:3000/drawmap;
+location /giomap {
+        proxy_pass http://localhost:3000/giomap;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -96,8 +96,8 @@ location /drawmap {
         proxy_cache_bypass $http_upgrade;
 }
 
-location /drawmap-socket-io {
-        proxy_pass http://localhost:3000/drawmap-socket-io;
+location /giomap-socket-io {
+        proxy_pass http://localhost:3000/giomap-socket-io;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';

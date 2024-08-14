@@ -7,20 +7,20 @@ const app = express();
 app.use(express.json())
 
 // user management
-users = require("./services/users")(app, "/drawmap");
-// users.server(app, "/drawmap");
+users = require("./services/users")(app, "/giomap");
+// users.server(app, "/giomap");
 
-// debugging routes only in devmode
+// add debugging routes only in devmode
 if (process.argv.includes("devmode")){
   require("./services/debug.db.routes")(app)
 }
 
 
-// drawmap 
+// giomap service 
 const server = http.createServer(app);
 const io = socketio(server,
   {
-    path: '/drawmap-socket-io'
+    path: '/giomap-socket-io'
   });
 
 require("./services/giomap/js/giomap.server")(app, io);
@@ -35,9 +35,9 @@ app.use(express.static(path.join(__dirname, "public")));
 // log all existing routes to server cosole
 require("./services/utils/logroutes")(app);
 
-// redirect root route to /drawmap/list
+// redirect root route to /giomap/list
 app.get("/", (req, res) => {
-  res.redirect("/drawmap/list");
+  res.redirect("/giomap/list");
 });
 
 

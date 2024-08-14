@@ -11,15 +11,15 @@ const mapdrawing = require('./mapdrawing.model');
         if (req.body.authorized) {
             next();
         } else {
-            res.redirect('/drawmap/user/login');
+            res.redirect('/giomap/user/login');
         }
     }];
 
     
     router.route('/geojson')
     .get(authorizeAndRedirect, async (req, res) => {
-        const drawMapEntries = await mapdrawing.find();
-        res.send(drawMapEntries);
+        const giomapEntries = await mapdrawing.find();
+        res.send(giomapEntries);
     });
     
     
@@ -145,7 +145,7 @@ const mapdrawing = require('./mapdrawing.model');
             description: req.body.description,
             createdBy: req.body.user.id,
             leafletView: req.body.leafletView,
-            drawmapModels: [],
+            giomapModels: [],
             shareLinkId: req.body.shareLinkId
         })
         .then((mapCanvas) => {
@@ -175,7 +175,7 @@ const mapdrawing = require('./mapdrawing.model');
             if (!mapCanvas) {
                 res.status(404).send('This map does not exist!');
             }
-            res.render('drawmap', { mapCanvas });
+            res.render('giomap', { mapCanvas });
         })
     });
     

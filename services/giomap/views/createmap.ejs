@@ -112,7 +112,7 @@ function saveMap (event) {
     
 
     // send data to server
-    fetch('/drawmap/create', {
+    fetch('/giomap/create', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -133,7 +133,7 @@ function saveMap (event) {
         
     }) // redirect to map edit page
     .then(res => {
-        window.location.href = '/drawmap/shared/' + res.shareLinkId;
+        window.location.href = '/giomap/shared/' + res.shareLinkId;
     })
 
 
@@ -142,7 +142,7 @@ function saveMap (event) {
 function cancelMap (event) {
     event.preventDefault();
     // go to map list
-    window.location.href = '/drawmap/list';
+    window.location.href = '/giomap/list';
 }
 
 function getMapPerspective() {

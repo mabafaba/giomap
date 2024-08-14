@@ -7,7 +7,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
         editingLayer: null,
         layers: [],
         socket: io({
-            path: "/drawmap-socket-io"
+            path: "/giomap-socket-io"
         }),
         controls: [],
         user: null,
@@ -24,7 +24,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 }
             }
             
-            fetch('/drawmap/user/me')
+            fetch('/giomap/user/me')
             // catch unauthorized
             .then(response => {
                 if (response.status === 401) {
@@ -196,7 +196,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 this.socket.emit('joinMapRoom', this.mapCanvasShareLinkId, this.onEachNewFeature);
                 this.listenForIncomingEdits(map, editingLayer);
                 this.sendOutgoingEdits(map, editingLayer);
-                this.addGeometriesFromServerToLayer('/drawmap/geojson/'+ this.mapCanvasShareLinkId, this.editingLayer);
+                this.addGeometriesFromServerToLayer('/giomap/geojson/'+ this.mapCanvasShareLinkId, this.editingLayer);
                 
             },
             
@@ -315,7 +315,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 
                 
                 this.socket.on('notAuthorized', (msg)=>{
-                    show_prompt('Not logged in!', 'You need to be logged in to edit this map. <a href="drawmap/user/login">Login</a> or <a href="drawmap/user/register">register</a> to continue.',false, "OK");
+                    show_prompt('Not logged in!', 'You need to be logged in to edit this map. <a href="giomap/user/login">Login</a> or <a href="giomap/user/register">register</a> to continue.',false, "OK");
                 })
                 
                 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <!--base -->
-  <base href="/drawmap/">
+  <base href="/giomap/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura-vader.css" media="screen" />
 
@@ -45,7 +45,7 @@
         e.preventDefault()
         display.textContent = ''
         try {
-          const res = await fetch('/drawmap/user/register', {
+          const res = await fetch('/giomap/user/register', {
             method: 'POST',
             body: JSON.stringify({ username: username.value, password: password.value }),
             headers: { 'Content-Type': 'application/json' }
@@ -56,7 +56,7 @@
 
           if(res.status === 200 || res.status === 201){
             
-            location.assign("/drawmap/list")
+            location.assign("/giomap/list")
           }
  
           if(res.status === 400 || res.status === 401){

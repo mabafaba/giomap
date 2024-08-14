@@ -311,7 +311,7 @@ button {
   
   // fetch username from user/me and display in menu
   
-  fetch('/drawmap/user/me')
+  fetch('/giomap/user/me')
   .then(response => response.json())
   .then(data => {
     // set username in menu
@@ -324,7 +324,7 @@ button {
   var url = window.location.href;
   var mapId = url.substring(url.lastIndexOf('/') + 1);
   // set download link
-  document.getElementById('nav-datadownload').querySelector('a').href =  "/drawmap/rawgeojson/" + mapId;
+  document.getElementById('nav-datadownload').querySelector('a').href =  "/giomap/rawgeojson/" + mapId;
   
   
   const page = <%- JSON.stringify(page) %>;
@@ -336,7 +336,7 @@ button {
     'editmapcanvas': ['nav-maplist', 'nav-newmap','nav-about', 'nav-logout'],
     'listmaps':      ['nav-maplist', 'nav-newmap','nav-about', 'nav-logout'],
     'createmap':     ['nav-maplist', 'nav-newmap', 'nav-about', 'nav-logout'],
-    'drawmap':       ['nav-sharemap', 'nav-maplist', 'nav-newmap', 'nav-datadownload', 'nav-about', 'nav-logout'],
+    'giomap':       ['nav-sharemap', 'nav-maplist', 'nav-newmap', 'nav-datadownload', 'nav-about', 'nav-logout'],
     'about':         ['nav-maplist', 'nav-newmap', 'nav-about', 'nav-logout']
   }
   
@@ -357,13 +357,13 @@ button {
   
   // target url for after login based on page variable
   const targeturl = {
-    'editmapcanvas': '/drawmap/edit',
-    'listmaps': '/drawmap/list',
-    'createmap': '/drawmap/create',
-    'drawmap': '/drawmap/shared'
+    'editmapcanvas': '/giomap/edit',
+    'listmaps': '/giomap/list',
+    'createmap': '/giomap/create',
+    'giomap': '/giomap/shared'
   }
-  // if drawmap or editmapcanvas, add shareLinkId to target url
-  if(page === 'drawmap' || page === 'editmapcanvas') {
+  // if giomap or editmapcanvas, add shareLinkId to target url
+  if(page === 'giomap' || page === 'editmapcanvas') {
     // get shareLinkId from url
     const url = window.location.href;
     const shareLinkId = url.substring(url.lastIndexOf('/') + 1);
@@ -374,13 +374,13 @@ button {
   // set logout link to /user/logout?targeturl= (target url of current page)
   // /user/logout?targeturl=
   
-  document.getElementById('nav-logout').querySelector('a').href = '/drawmap/user/logout?targeturl=' + targeturl[page];
+  document.getElementById('nav-logout').querySelector('a').href = '/giomap/user/logout?targeturl=' + targeturl[page];
   
   
-  fetch('/drawmap/user/me')
+  fetch('/giomap/user/me')
   .then(response => {
     if(response.status === 401) {
-      window.location.href = 'drawmap/user/login?targeturl=' + targeturl[page];
+      window.location.href = 'giomap/user/login?targeturl=' + targeturl[page];
     }
   })
   
@@ -443,7 +443,7 @@ button {
     show_prompt('About', 
     `
     <h2>Realtime Collaborative Mapping</h2>
-    <p> DrawMap is a web application that allows users to place markers, lines, and polygons on a map - simultaneously and in real time. 
+    <p> giomap is a web application that allows users to place markers, lines, and polygons on a map - simultaneously and in real time. 
     </p>
     <!-- link to source code -->
     <p>

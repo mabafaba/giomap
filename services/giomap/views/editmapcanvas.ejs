@@ -103,7 +103,7 @@ function getMapDetails () {
     const url = window.location.href;
     const mapId = url.substring(url.lastIndexOf('/') + 1);
     // get map details from server
-    fetch('/drawmap/mapdetails/' + mapId)
+    fetch('/giomap/mapdetails/' + mapId)
     .then(res => {
         if(res.status === 200) {
             return res.json();
@@ -135,7 +135,7 @@ function updateMap (event) {
     // get map id from url
     url = window.location.href;
     mapId = url.substring(url.lastIndexOf('/') + 1);
-    endpoint = '/drawmap/update/' + mapId;
+    endpoint = '/giomap/update/' + mapId;
     // send data to server
     fetch(endpoint, {
         method: 'POST',
@@ -158,7 +158,7 @@ function updateMap (event) {
         
     }) // redirect to map edit page
     .then(res => {
-        window.location.href = '/drawmap/list/';
+        window.location.href = '/giomap/list/';
     })
 
 
@@ -167,7 +167,7 @@ function updateMap (event) {
 function cancelMap (event) {
     event.preventDefault();
     // go to map list
-    window.location.href = '/drawmap/list';
+    window.location.href = '/giomap/list';
 }
 
 function getMapPerspective() {

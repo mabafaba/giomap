@@ -1,5 +1,5 @@
 // This file contains the routes for debugging and manipulating the database.
-// It includes routes for dropping users, retrieving all users, and dropping drawmap entries.
+// It includes routes for dropping users, retrieving all users, and dropping giomap entries.
 // Should never be included in production!
 
 const {mapdrawing} = require("./giomap")
@@ -25,17 +25,17 @@ module.exports = function(app){
         res.send(users);
     });
     
-    // delete all drawmap entries
-    app.get('/debug/dropdrawmap', async function(req, res){
+    // delete all giomap entries
+    app.get('/debug/dropgiomap', async function(req, res){
         await mapdrawing.collection.drop();
         await MapCanvas.collection.drop();
-        res.send("drawmap entries dropped!")
+        res.send("giomap entries dropped!")
     });
 
     // delete specific map
     app.get('/debug/deletemap/:id', async function(req, res){
         await mapdrawing.findByIdAndDelete(req.params.id);
-        res.send("drawmap entry dropped!")
+        res.send("giomap entry dropped!")
     });
     
     
