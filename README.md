@@ -125,6 +125,11 @@ Feel free to contact me directly.
 
 ## TO DO
 
+- free text if no options selected on property field
+- edit map data properties
+
+- map creator can predefine different standard map entries
+
 - Popup not working reliably on circle / rectangle
 - add user name and id to drawings on upon creation
 - add authentification (who can see which maps)

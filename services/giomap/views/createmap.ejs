@@ -8,15 +8,20 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
+
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura-vader.css" media="screen" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <!-- include alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
+    <!-- table tags -->
+    <script src="https://cdn.jsdelivr.net/gh/mabafaba/tabletagsjs@latest/tabletags.js"></script>
+
+
     <!-- <div id="cover" style="background-color:aquamarine;position:fixed;width:100%;height:100%;z-index:3000;left:0;top:0"></div> -->
-    <!-- <button id="gotome" style="position:fixed;left:50%;top:50%;z-index:3001;" onclick="goToUser()">Go to me!</button> -->
+    <!-- <button id="gotome" style="position:fixed;left:50%;top:50%;z-index:3001;" onclick="goToUser()">Go to me!</
+        > -->
     <!-- post data div -->
 </head>
 <body>
@@ -32,12 +37,24 @@
         <form id="createMapForm">
             <label for="name">Name:</label><br>
             <textarea id="name" name="name" placeholder="Enter Map Name" rows="1"></textarea><br>
+            <br>
             <label for="description">Description:</label><br>
             <p>The description is displayed as an info text when opening the map.</p>
             <textarea id="description" name="description" placeholder="Enter description" rows="4" cols="20"></textarea><br>
+            <br>
+            <label for="myTableTagsContainer">Geometry Features</label><br>
+            <div id="myTableTagsContainer"></div>
+            <br>
             <label for="leafletMap">Initial Map View</label><br>
             <div id="leafletMap"></div>
             <div id="filler" style="height: 400px; width: 50%; float: left;"></div>
+
+ 
+ <script>
+     var container = document.getElementById('myTableTagsContainer');
+     var tableTags = new TableTags(container);
+ </script>
+ 
             <button type="submit" name="action" value="save">Save</button>
             <button type="submit" class='cancelbutton' name="action" value="cancel">Cancel</button>
         </form>
@@ -67,7 +84,16 @@
         width: 50%;
         /* align right */
         float: right;
+
+
     }
+
+
+/* set tagify placeholder color --placeholder-color */
+
+.tagify__input {
+    --placeholder-color: #606060;
+}
 
 </style>
 
@@ -109,7 +135,27 @@ function saveMap (event) {
     const description = formData.get('description');
     // get map view
     const mapView = getMapPerspective();
-    
+
+    // geometry property fields
+    var geometryPropertyFields = tableTags.data;
+    console.log(geometryPropertyFields)
+    // remove empty fields
+    geometryPropertyFields = geometryPropertyFields.filter(field => {
+    console.log(field);    
+    return (field.name !== '') & (field.values.length > 0)
+})
+
+    geometryPropertyFields = geometryPropertyFields.map(field => {
+        field.type = 'categorical';
+        field.categoricalValues = field.values;
+    delete field.values;
+       return field;
+    });
+
+
+
+   
+    console.log(geometryPropertyFields)
 
     // send data to server
     fetch('/giomap/create', {
@@ -120,7 +166,8 @@ function saveMap (event) {
         body: JSON.stringify({
             name: name,
             description: description,
-            leafletView: mapView
+            leafletView: mapView,
+            geometryPropertyFields: geometryPropertyFields
         })
     }) // if status is ok, get the map id from the response
     .then(res => {

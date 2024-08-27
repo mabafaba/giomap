@@ -100,7 +100,7 @@ class FeatureEditor {
         var td2 = document.createElement('td');
         td2.classList.add('featureValues');
         var featureValueInput = document.createElement('input');
-        featureValueInput.setAttribute('placeholder', 'options');
+        featureValueInput.setAttribute('placeholder', 'add options...');
         featureValueInput.classList.add('tagifyInputField');
         // default content
         

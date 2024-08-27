@@ -2,10 +2,10 @@
 mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
     mapio = {
         map: map,
-        mapCanvasShareLinkId: mapCanvasShareLinkId,
-        onEachNewFeature: onEachNewFeature,
-        editingLayer: null,
-        layers: [],
+        mapCanvasShareLinkId: mapCanvasShareLinkId, // a string unique ID to create an 'obscure' url for the map
+        onEachNewFeature: onEachNewFeature, // function that is applied to each drawn 'feature' before it is added to leaflet  
+        editingLayer: null, // the leaflet layer object that the user is currently editing 
+        layers: [], // array of leaflet layers that users can select and draw on
         socket: io({
             path: "/giomap-socket-io"
         }),
@@ -330,7 +330,13 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 feature.properties = feature.properties || {};
                 feature.properties["name"] = feature.properties["name"] || "";
                 feature.properties["description"] = feature.properties["description"] || "";
-                
+                // // any other properties that are found in the layer object are added to the properties object
+                // Object.keys(layer).forEach((key) => {
+                //     // if key is not yet in properties object, add it
+                //     if (!feature.properties[key]) {
+                //         feature.properties[key] = layer[key];
+                //     }
+                // });
                 // add uuid to feature if it doesn't exist yet
                 feature.properties.uuid = feature.properties.uuid || crypto.randomUUID();
                 
@@ -340,6 +346,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 // add color to feature
                 feature.properties.color = this.user.color;
                 this.styleGeometry(layer);
+                
                 this.socket.emit('iMadeAGeometry!', {"layer": LayerToGeoJson(layer), "mapcanvasShareLinkId": mapCanvasShareLinkId});
                 
             },

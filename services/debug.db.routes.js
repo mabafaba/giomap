@@ -32,6 +32,8 @@ module.exports = function(app){
         res.send("giomap entries dropped!")
     });
 
+
+
     // delete specific map
     app.get('/debug/deletemap/:id', async function(req, res){
         await mapdrawing.findByIdAndDelete(req.params.id);

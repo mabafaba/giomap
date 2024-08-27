@@ -122,10 +122,12 @@ const mapdrawing = require('./mapdrawing.model');
         allMaps = await MapCanvas.populate(allMaps, { path: 'createdBy', select: 'i_d username' });
         allMapsJson = allMaps.map((map) => {
             mapObj = map.toObject();
-            if (mapObj.createdBy._id == req.body.user.id) {
-                mapObj.userIsCreator = true;
+            // add boolean - is user creator?
+            if (mapObj.createdBy && mapObj.createdBy._id == req.body.user.id) {
+                
+            mapObj.userIsCreator = true;
             } else {
-                mapObj.userIsCreator = false;
+            mapObj.userIsCreator = false;
             }
             return mapObj;
         })
@@ -146,7 +148,8 @@ const mapdrawing = require('./mapdrawing.model');
             createdBy: req.body.user.id,
             leafletView: req.body.leafletView,
             giomapModels: [],
-            shareLinkId: req.body.shareLinkId
+            shareLinkId: req.body.shareLinkId,
+            geometryPropertyFields: req.body.geometryPropertyFields
         })
         .then((mapCanvas) => {
             return mapCanvas.save();
