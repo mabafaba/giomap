@@ -16,7 +16,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <!-- table tags -->
-    <script src="https://cdn.jsdelivr.net/gh/mabafaba/tabletagsjs@latest/tabletags.js"></script>
+    <script src="./js/tabletags.js"></script>
 
 
     <!-- <div id="cover" style="background-color:aquamarine;position:fixed;width:100%;height:100%;z-index:3000;left:0;top:0"></div> -->
@@ -35,15 +35,24 @@
 
     <p>
         <form id="createMapForm">
-            <label for="name">Name:</label><br>
+            <label for="name">Name</label><br>
             <textarea id="name" name="name" placeholder="Enter Map Name" rows="1"></textarea><br>
             <br>
-            <label for="description">Description:</label><br>
+            <label for="description">Description</label><br>
             <p>The description is displayed as an info text when opening the map.</p>
             <textarea id="description" name="description" placeholder="Enter description" rows="4" cols="20"></textarea><br>
             <br>
-            <label for="myTableTagsContainer">Geometry Features</label><br>
-            <div id="myTableTagsContainer"></div>
+            <label for="customGeoItems">Geometry Properties</label><br>    
+            <p>Define what additional information users can add to their drawn geometries. You can define different types of elements that people can add to the map.
+                For each type, you can define a name, what kind of geometry it should be, and a list of possible values.</p>
+
+                <p>If you add options to a data field (type in the field and hit enter), the field will be a dropdown list. If you leave the 'options' field empty, it becomes a free text field. </p>
+            <div id="customGeoItems"></div>
+            <!-- button to add custom geo items -->
+            <button type="button" onclick="addCustomGeoItem()">+</button>
+            
+            <br>
+            <br>
             <br>
             <label for="leafletMap">Initial Map View</label><br>
             <div id="leafletMap"></div>
@@ -51,8 +60,16 @@
 
  
  <script>
-     var container = document.getElementById('myTableTagsContainer');
-     var tableTags = new TableTags(container);
+    //  var container = document.getElementById("customGeoItems").appendChild(div);
+    //  var tableTags = new TableTags(container,
+
+    // //  initialRows = [{name:'test',values: ['some', 'tags']}]
+    // // as below name, description and type are added as rows
+    // initialRows = [{name:'name',values: []},
+    //                {name:'description',values: []},
+    //                {name:'type',values: ['select', 'categories']}]
+
+    //  );
  </script>
  
             <button type="submit" name="action" value="save">Save</button>
@@ -94,6 +111,33 @@
 .tagify__input {
     --placeholder-color: #606060;
 }
+
+/* /<td class="featureName"><input placeholder="data field name" style="height: 2.6em;"></td> */
+/* style td of class featerName and featureValues  to be each 50% of table width*/
+.featureName, .featureValues {
+    width: 50%;
+}
+
+/* style tagify input to be full width of parent */
+.tagify__input {
+    width: 100%;
+}
+
+/* style input element inside featerName to be full width of parent */
+.featureName input {
+    min-width: 99%;
+    margin-bottom: 0px;
+}
+
+.tagifyInputField {
+  width: 100%;
+}
+
+td {
+    border-bottom-style: none
+}
+
+
 
 </style>
 
@@ -138,24 +182,28 @@ function saveMap (event) {
 
     // geometry property fields
     var geometryPropertyFields = tableTags.data;
+    console.log('saving map...')
     console.log(geometryPropertyFields)
-    // remove empty fields
-    geometryPropertyFields = geometryPropertyFields.filter(field => {
-    console.log(field);    
-    return (field.name !== '') & (field.values.length > 0)
+    // remove fields with no name
+    geometryPropertyFields = geometryPropertyFields.filter(field => {    
+    return (field.name !== '')
 })
 
+
     geometryPropertyFields = geometryPropertyFields.map(field => {
+        // if theres no values, set type to text.
+        //Otherwise set type to categorical and set categorical values
+        if(field.values.length === 0) {
+            field.type = 'text';
+        } else {
         field.type = 'categorical';
         field.categoricalValues = field.values;
+        }
     delete field.values;
        return field;
     });
 
 
-
-   
-    console.log(geometryPropertyFields)
 
     // send data to server
     fetch('/giomap/create', {
@@ -205,7 +253,155 @@ function getMapPerspective() {
     map.setView(perspective.center, perspective.zoom);
   }
 
+function addCustomGeoItem () {
+    // create div, add tabletags element, add to customGeoItems div
+    var container = document.createElement('div');
+    // padding
+    container.style.padding = '20px';
+    container.style.position = 'relative';
+
+    // create table element
+    var table = document.createElement('table');
+    table.style.width = '100%';
+
+    // create table row for name
+    var nameRow = document.createElement('tr');
+
+    // create table cell for name label
+    var nameLabelCell = document.createElement('td');
+    nameLabelCell.style.width = '50%';
+    nameLabelCell.innerHTML = 'Name:';
+    nameRow.appendChild(nameLabelCell);
+
+    // create table cell for name input
+    var nameInputCell = document.createElement('td');
+    nameInputCell.style.width = '50%';
+    var nameInput = document.createElement('input');
+    // style to fill width
+    nameInput.style.width = '100%';
+    nameInput.style['margin-bottom'] = '0px';
+
+    nameInput.type = 'text';
+    nameInput.placeholder = 'Name';
+    nameInputCell.appendChild(nameInput);
+    nameRow.appendChild(nameInputCell);
+
+    // append name row to table
+    table.appendChild(nameRow);
+
+    // create table row for geometry type
+    var geometryTypeRow = document.createElement('tr');
+
+    // create table cell for geometry type label
+    var geometryTypeLabelCell = document.createElement('td');
+    geometryTypeLabelCell.style.width = '50%';
+    geometryTypeLabelCell.innerHTML = 'Geometry Type:';
+    geometryTypeRow.appendChild(geometryTypeLabelCell);
+
+    // create table cell for geometry type select
+    var geometryTypeSelectCell = document.createElement('td');
+    geometryTypeSelectCell.style.width = '50%';
+    var geometryTypeSelect = document.createElement('select');
+    geometryTypeSelect.style.width = '100%';
+    geometryTypeSelect.style['margin-bottom'] = '0px';
+    var geometryTypes = ['Point', 'Line', 'Polygon', 'Circle', 'Rectangle'];
+
+    // add check boutton for each geometry type
+    var geometryTypeCheckboxes = document.createElement('div');
+    geometryTypes.forEach(type => {
+        var checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = type;
+        checkbox.id = type;
+        var label = document.createElement('label');
+        label.htmlFor = type;
+        label.innerHTML = type;
+        label.style.display = 'inline';
+        geometryTypeCheckboxes.appendChild(checkbox);
+        geometryTypeCheckboxes.appendChild(label);
+        geometryTypeCheckboxes.appendChild(document.createElement('br'));
+    });
+
+    
+
+    // geometryTypes.forEach(type => {
+    //     var option = document.createElement('option');
+    //     option.value = type;
+    //     option.text = type;
+    //     geometryTypeSelect.appendChild(option);
+    // });
+
+    // geometryTypeSelectCell.appendChild(geometryTypeSelect);
+    // geometryTypeRow.appendChild(geometryTypeSelectCell);
+
+    geometryTypeSelectCell.appendChild(geometryTypeCheckboxes);
+    geometryTypeRow.appendChild(geometryTypeSelectCell);
+
+    // append geometry type row to table
+    table.appendChild(geometryTypeRow);
+
+    // another row to contain data fields label
+    var dataFieldsLabelRow = document.createElement('tr');
+    var dataFieldsLabelCell = document.createElement('td');
+    datafieldslabel = document.createElement('label');
+    datafieldslabel.innerHTML = 'Data Fields:';
+    dataFieldsLabelCell.appendChild(datafieldslabel);
+    dataFieldsLabelRow.appendChild(dataFieldsLabelCell);
+    table.appendChild(dataFieldsLabelRow);
+
+    
+    
+    // append table to container
+    container.appendChild(table);
+
+    var tableTagsContainer = document.createElement('div');
+    // round border for container
+    container.style.border = '1px solid #ccc';
+    container.style.borderRadius = '10px';
+    // bottom margin for container
+    container.style.marginBottom = '10px';
+    tableTagsContainer.id = 'myTableTagsContainer-'+document.getElementById('customGeoItems').children.length;
+    // turn into tabletags instance
+    var tableTags = new TableTags(tableTagsContainer);
+    
+    container.appendChild(tableTagsContainer);
+
+    // create button to remove custom geo item
+    var removeButton = document.createElement('button');
+    removeButton.innerHTML = 'x';
+    // place on top right corner of container - NOT of whole page
+    removeButton.style.position = 'absolute';
+    removeButton.style.top = '-4';
+    removeButton.style.right = '-4';
+    // make round
+    removeButton.style.borderRadius = '50%';
+    // padding
+    removeButton.style.padding = '5px';
+    removeButton.style.paddingBottom = '10px';
+    removeButton.style.width = '30px';
+    removeButton.style.height = '30px';
+
+    removeButton.onclick = function() {
+        container.remove();
+    };
+    container.appendChild(removeButton);
+
+
+    // add container to customGeoItems div
+    document.getElementById('customGeoItems').appendChild(container);
+
+
+
+
+    
+} 
+
+
+// have one custom geo item by default
+addCustomGeoItem();
 
 </script>
+
+
 
 </html>

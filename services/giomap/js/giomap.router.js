@@ -121,10 +121,10 @@ const mapdrawing = require('./mapdrawing.model');
         // only keep user id and username
         allMaps = await MapCanvas.populate(allMaps, { path: 'createdBy', select: 'i_d username' });
         allMapsJson = allMaps.map((map) => {
+            console.log('map', map);
             mapObj = map.toObject();
             // add boolean - is user creator?
             if (mapObj.createdBy && mapObj.createdBy._id == req.body.user.id) {
-                
             mapObj.userIsCreator = true;
             } else {
             mapObj.userIsCreator = false;

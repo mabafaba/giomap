@@ -133,3 +133,9 @@ Feel free to contact me directly.
 - Popup not working reliably on circle / rectangle
 - add user name and id to drawings on upon creation
 - add authentification (who can see which maps)
+
+
+### Simplify Codebase
+- get rid of Alpine.js and replace with vanilla JS / jQuery. Frontend frameworks are overrated.
+- get rid of ejs templating enginge. Use plain HTML. // see https://dev.to/andreygermanov/modular-html-19o6
+- use socket.io only to alert clients of changes. Use REST API for everything else.

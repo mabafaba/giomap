@@ -1,3 +1,14 @@
+// OVERVIEW (short lines)
+
+// mapio is a global object that is created when the page is loaded, and is used to connect to the server and edit the map.
+// on init, it creates a socket connection to the server, and listens for incoming edits and sends outgoing edits.
+// it also has a method to add existing geometries from the server to the editing layer.
+// it has a method to save a layer to the server, and a method to delete a layer from the server.
+// it has a method to change the drawing color, and a method to style a geometry.
+// it has a method to add editing controls to the map, and a method to connect the map to the server.
+
+
+
 
 mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
     mapio = {
@@ -328,17 +339,9 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 var feature = layer.feature = layer.feature || {};
                 feature.type = feature.type || "Feature";
                 feature.properties = feature.properties || {};
-                feature.properties["name"] = feature.properties["name"] || "";
-                feature.properties["description"] = feature.properties["description"] || "";
-                // // any other properties that are found in the layer object are added to the properties object
-                // Object.keys(layer).forEach((key) => {
-                //     // if key is not yet in properties object, add it
-                //     if (!feature.properties[key]) {
-                //         feature.properties[key] = layer[key];
-                //     }
-                // });
-                // add uuid to feature if it doesn't exist yet
                 feature.properties.uuid = feature.properties.uuid || crypto.randomUUID();
+
+                // custom properties should already be set.
                 
                 // add user to feature
                 feature.properties.createdBy = this.user;

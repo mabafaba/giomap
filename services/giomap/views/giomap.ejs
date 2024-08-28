@@ -20,7 +20,7 @@
     <!-- include alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script type="text/javascript" src="../js/leafletgraticule.js"></script>
-
+    
     <!-- giomap JS script -->
     <script src="../js/geoutils.js"></script>
     <script src="../js/editableMapClientConnection.js"></script>
@@ -28,8 +28,8 @@
     <!-- color picker -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"/>
     <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
-
-
+    
+    
     <!-- <div id="cover" style="background-color:aquamarine;position:fixed;width:100%;height:100%;z-index:3000;left:0;top:0"></div> -->
     <!-- <button id="gotome" style="position:fixed;left:50%;top:50%;z-index:3001;" onclick="goToUser()">Go to me!</button> -->
     <!-- post data div -->
@@ -66,11 +66,11 @@
         
         
         <script>
-
+            
             // popup with map name and map description on page load
             const description = <%- JSON.stringify(mapCanvas.description) %>
             show_prompt('<%= mapCanvas.name %>', description, false, 'OK');
-
+            
             
             // ejs get mapCanvas share link id as passed to ejs template server side
             // if not available, get it from url
@@ -81,10 +81,10 @@
                     
                     var mapCanvasShareLinkId = window.location.href.split('/shared/')[1];
                     <% } %>    
-       
+                    
                     // map canvas passed from server
                     const mapView = <%- JSON.stringify(mapCanvas.leafletView) %>;
-
+                    
                     // map geometry feature fields passed from server
                     const geometryPropertyFields = <%- JSON.stringify(mapCanvas.geometryPropertyFields) %>;
                     console.log(geometryPropertyFields);
@@ -107,14 +107,14 @@
                         maxZoom: 20,
                         subdomains:['mt0','mt1','mt2','mt3']
                     }).addTo(map);
-
+                    
                     googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
                         maxZoom: 20,
                         subdomains:['mt0','mt1','mt2','mt3']
                     }).addTo(map);
-
                     
-
+                    
+                    
                     // controls to toggle between tile layers
                     var baseMaps = {
                         "Map": osm,
@@ -126,11 +126,11 @@
                     // layers control bottom left
                     L.control.layers(baseMaps, null, {position: 'bottomleft'}).addTo(map);
                     
-
+                    
                     // add graticule
                     graticule = zoomLimitedGraticule(map, 0.5, 7);
                     graticule.on();
-
+                    
                     // add control to toggle graticule
                     L.Control.ToggleGraticule = L.Control.extend({
                         onAdd: function(map) {
@@ -156,7 +156,7 @@
                             // Nothing to do here
                         }
                     });
-
+                    
                     L.control.toggleGraticule = function(opts) {
                         return new L.Control.ToggleGraticule(opts);
                     }
@@ -173,13 +173,13 @@
                     updateGridControlButtonVisibility();
                     // on zoom, show or hide graticule button depending on zoom level
                     map.on('zoomend', updateGridControlButtonVisibility);
-
+                    
                     
                     mapio = mapio(map, mapCanvasShareLinkId, addEditPropertiesPopupToLayer);
                     editingLayer = mapio.editingLayer;
                     
-            
-
+                    
+                    
                     
                     
                     function openGeoJsonFileDialog(){
@@ -213,18 +213,18 @@
                                 geojson.features.forEach(function(feature){
                                     // add uuid to feature
                                     feature.properties.uuid = crypto.randomUUID();
-
+                                    
                                     feature.properties.color = mapio.user.color;
                                     
                                     
                                     // send to server 
                                     mapio.socket.emit('iUploadedGeometriesFromFile!',
-                                        {layer: feature, mapcanvasShareLinkId: mapio.mapCanvasShareLinkId}
+                                    {layer: feature, mapcanvasShareLinkId: mapio.mapCanvasShareLinkId}
                                     );
                                 });
                                 
                                 // add layers to map
-
+                                
                                 // close alert
                                 close_prompt();
                                 // new prompt: all went well
@@ -237,39 +237,37 @@
                         
                         input.click();
                     } 
-                            
+                    
                     
                     function addEditPropertiesPopupToLayer (layer){
                         
                         function submitPopupForm (e) {
-
-
+                            
+                            
                             // this function is created within addEditPropertiesPopupToLayer
                             // so that it has access to the layer variable
                             // see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures
                             
                             e.preventDefault(); // prevent default submit action
                             e.stopImmediatePropagation(); // prevent other event listeners from firing
-
-
+                            
+                            
                             // reset if cancel button is clicked
                             if(e.submitter.value=="cancel"){
                                 
                                 layer.closePopup();
                                 return;
                             }
-
-
+                            
+                            
                             // copy form data to layer
                             var feature = layer.feature = layer.feature || {};
                             feature.type = "Feature";
                             feature.properties = feature.properties || {};
-                            feature.properties["name"] = feature.properties["name"] || "";
-                            feature.properties["description"] = feature.properties["description"] || "";
                             
                             // convert form data to properties in the geometry feature
                             var formData = new FormData(e.target);
-
+                            
                             // set layer properties based on each entry in the form data like this:
                             // formdata = {somekey: somevalue, someotherkey: someothervalue}
                             // feature.properties["somekey"] = feature.properties["somevalue"] || "";
@@ -286,14 +284,14 @@
                                     console.log('after pair', pair);
                                     console.log(feature.properties.custom);
                                 }
-
-
-
+                                
+                                
+                                
                             }
                             console.log('props after', feature.properties);
                             console.log('layer', layer);
-
-
+                            
+                            
                             
                             
                             // prevent default submit action
@@ -318,50 +316,18 @@
                             var form = document.createElement('form');
                             form.id = "popupForm";
                             form.className = "popupForm";
-                            // name label
-                            var nameLabel = document.createElement('label');
-                            nameLabel.for = "name";
-                            nameLabel.innerHTML = "Name:";
-                            form.appendChild(nameLabel);
-                            form.appendChild(document.createElement('br'));
-                            // name textarea
-                            var nameTextarea = document.createElement('textarea');
-                            nameTextarea.id = "name";
-                            nameTextarea.name = "name";
-                            nameTextarea.placeholder = "Enter name";
-                            nameTextarea.rows = 1;
-                            nameTextarea.innerHTML = feature.properties.name;
-                            form.appendChild(nameTextarea);
-                            form.appendChild(document.createElement('br'));
-                            // description label
-                            var descriptionLabel = document.createElement('label');
-                            descriptionLabel.for = "description";
-                            descriptionLabel.innerHTML = "Description:";
-                            form.appendChild(descriptionLabel);
-                            form.appendChild(document.createElement('br'));
-                            // description textarea
-                            var descriptionTextarea = document.createElement('textarea');
-                            descriptionTextarea.id = "description";
-                            descriptionTextarea.name = "description";
-                            descriptionTextarea.placeholder = "Enter description";
-                            descriptionTextarea.rows = 4;
-                            descriptionTextarea.cols = 20;
-                            descriptionTextarea.innerHTML = feature.properties.description;
-                            form.appendChild(descriptionTextarea);
-                            form.appendChild(document.createElement('br'));
-
                             
                             // create form group for user defined properties
                             var userDefinedPropertiesGroup = document.createElement('div');
                             userDefinedPropertiesGroup.className = "form-group-user-defined-properties";
                             // set id
                             userDefinedPropertiesGroup.id = "userDefinedPropertiesGroup";
-
+                            
                             // iterate over user defined properties
                             // append user defined properties group to form
                             form.appendChild(userDefinedPropertiesGroup);
-
-
+                            
+                            
                             // add drop down menue for geometry properties from geometryPropertyFields array
                             geometryPropertyFields.forEach(function(field){
                                 // label
@@ -370,45 +336,82 @@
                                 fieldLabel.innerHTML = field.name;
                                 userDefinedPropertiesGroup.appendChild(fieldLabel);
                                 userDefinedPropertiesGroup.appendChild(document.createElement('br'));
-                                // select
-                                var fieldSelect = document.createElement('select');
-                                fieldSelect.id = field.name;
-                                fieldSelect.name = field.name;
-                                fieldSelect.innerHTML = field.name;
-                                fieldSelect.style.width = "100%";
-                                fieldSelect.style.marginBottom = "10px";
-                                // add empty option
-                                var emptyOption = document.createElement('option');
-                                emptyOption.hidden = true;
-                                emptyOption.disabled = true;
-                                emptyOption.selected = true;
-                                emptyOption.value = "";
-                                emptyOption.innerHTML = "select";
-                                fieldSelect.appendChild(emptyOption);
-                                // add options
-                                field.categoricalValues.forEach(function(value){
-                                    var option = document.createElement('option');
-                                    option.value = value;
-                                    option.innerHTML = value;
-                                    fieldSelect.appendChild(option);
-                                });
-                                // form.appendChild(fieldSelect);
-                                // form.appendChild(document.createElement('br'));
-                                userDefinedPropertiesGroup.appendChild(fieldSelect);
+                                
+                                // if field is text
+                                //     var descriptionTextarea = document.createElement('textarea');
+                                // descriptionTextarea.id = "description";
+                                // descriptionTextarea.name = "description";
+                                // descriptionTextarea.placeholder = "Enter description";
+                                // descriptionTextarea.rows = 4;
+                                // descriptionTextarea.cols = 20;
+                                
+                                if(field.type === 'text'){
+                                    var fieldInput = document.createElement('input');
+                                    fieldInput.id = field.name;
+                                    fieldInput.name = field.name;
+                                    fieldInput.placeholder = field.name;
+                                    fieldInput.style.width = "100%";
+                                    fieldInput.style.marginBottom = "10px";
+                                    // set rows / cols
+                                    fieldInput.rows = 1;
+                                    fieldInput.cols = 20;
+                                    // add value if already present
+                                    if(feature.properties.custom && feature.properties.custom[field.name]){
+                                        fieldInput.value = feature.properties.custom[field.name];
+                                    }
+
+                                    userDefinedPropertiesGroup.appendChild(fieldInput);
+                                }
+                                
+                                // if field is categorical
+                                if(field.type === 'categorical'){
+                                    // select
+                                    var fieldSelect = document.createElement('select');
+                                    fieldSelect.id = field.name;
+                                    fieldSelect.name = field.name;
+                                    fieldSelect.innerHTML = field.name;
+                                    fieldSelect.style.width = "100%";
+                                    fieldSelect.style.marginBottom = "10px";
+                                    // add empty option
+                                    var emptyOption = document.createElement('option');
+                                    emptyOption.hidden = true;
+                                    emptyOption.disabled = true;
+                                    emptyOption.selected = true;
+                                    emptyOption.value = "";
+                                    emptyOption.innerHTML = "select";
+                                    fieldSelect.appendChild(emptyOption);
+                                    // add options
+                                    field.categoricalValues.forEach(function(value){
+                                        var option = document.createElement('option');
+                                        option.value = value;
+                                        option.innerHTML = value;
+                                        fieldSelect.appendChild(option);
+                                    });
+
+                                    userDefinedPropertiesGroup.appendChild(fieldSelect);
+                                }
+
+                                
                                 userDefinedPropertiesGroup.appendChild(document.createElement('br'));
                             });
 
-                            
-
-                            // add categorical values to form
+                                                        
+                            // if data is avaliable, fill in the form
                             geometryPropertyFields.forEach(function(field){
-                                // add to feature properties
+                                
                                 if(feature.properties.custom && feature.properties.custom[field.name]){
-                                    var select = userDefinedPropertiesGroup.querySelector(`select[name="${field.name}"]`);
-                                    select.value = feature.properties.custom[field.name];
+                                    // categorical data
+                                    if(field.type === 'categorical'){
+                                        var select = userDefinedPropertiesGroup.querySelector(`select[name="${field.name}"]`);
+                                        select.value = feature.properties.custom[field.name];
+                                    }
+                                    if(field.type === 'text'){
+                                        var input = userDefinedPropertiesGroup.querySelector(`input[name="${field.name}"]`);
+                                        input.value = feature.properties.custom[field.name];
+                                    }
                                 } 
                             });
-
+                            
                             // created by paragraph
                             if(feature.properties.createdBy){
                                 var createdByParagraph = document.createElement('p');
@@ -419,7 +422,7 @@
                                 form.appendChild(document.createElement('br'));
                                 form.appendChild(document.createElement('br'));
                             }
-
+                            
                             // save button
                             var saveButton = document.createElement('button');
                             saveButton.type = "submit";
@@ -436,9 +439,9 @@
                             form.appendChild(cancelButton);
                             // append form to popup content
                             layer.setPopupContent(form);
-
-
-
+                            
+                            
+                            
                             
                             document.getElementById("popupForm").addEventListener("submit", submitPopupForm);
                             document.getElementById("popupForm").addEventListener("cancel", submitPopupForm);
@@ -464,7 +467,7 @@
                         min-width: 150px;
                         /* everything regular sized, not smaller */
                         font-size: 1.2rem;
-
+                        
                         overflow-y: scroll;
                     }
                     p {
@@ -485,28 +488,28 @@
                     } 
                     
                     /* <i> children of <a> of leaflet-control-custom */
-                    .leaflet-control-custom a i {
-                        font-size: 2rem; */
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        color:black;
-                        margin: auto;
-                        padding-top:5px;
-                    }
-
-
-                    .leaflet-div-icon {
-                        margin-left: -4px !important;
-                        margin-top: -4px !important;
-                        width: 8px !important;
-                        height: 8px !important;
-                    }
-
-                </style>
-                
-                
-                <!-- include alert -->
-                <%- include('./alert') %>
-            </body>
-            </html>
+                        .leaflet-control-custom a i {
+                            font-size: 2rem; */
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color:black;
+                            margin: auto;
+                            padding-top:5px;
+                        }
+                        
+                        
+                        .leaflet-div-icon {
+                            margin-left: -4px !important;
+                            margin-top: -4px !important;
+                            width: 8px !important;
+                            height: 8px !important;
+                        }
+                        
+                    </style>
+                    
+                    
+                    <!-- include alert -->
+                    <%- include('./alert') %>
+                </body>
+                </html>

@@ -6,7 +6,7 @@ const mongoose = require("./services/db/db")
 const app = express();
 app.use(express.json())
 
-// user management
+// add user management service
 users = require("./services/users")(app, "/giomap");
 // users.server(app, "/giomap");
 
@@ -16,7 +16,7 @@ if (process.argv.includes("devmode")){
 }
 
 
-// giomap service 
+// add giomap service 
 const server = http.createServer(app);
 const io = socketio(server,
   {
@@ -29,8 +29,6 @@ require("./services/giomap/js/giomap.server")(app, io);
 
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));
-
-
 
 // log all existing routes to server cosole
 require("./services/utils/logroutes")(app);
