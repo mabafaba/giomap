@@ -179,13 +179,11 @@ class TableTags {
     }
 
     #onRowEdit(id, editingWhat, name, values) {
-        console.log('Row edited:', id, name, values);
         // make sure there is always one empty row at the end of the table            
         this.#haveOneEmptyRowToEnd();
         // if row is now empty, remove it
         if (name == '' && values.length == 0) {
             // remove the row
-            console.log('Row is empty, removing:', id);
             this.removeRow(id);
 
             // focus on the new empty row, either on the name or the tag input depending on which was just emptied
@@ -206,7 +204,6 @@ class TableTags {
     }
 
     removeRow(id) {
-        console.log('removing row', id);
 
         // Description: Remove a feature row from the table
         // Parameters:
@@ -217,12 +214,10 @@ class TableTags {
 
         // Remove the feature from the array of features where the id matches
         var index = this.rows.findIndex(f => f.id == id);
-        console.log('Removing row:', index, 'from array:', this.rows);
         
         this.rows.splice(index, 1);
         // Remove the row from the table body
         var row = this.parentNode.querySelector(`tr[id="${id}"]`);
-        console.log('Removing row:', row);
         row.parentNode.removeChild(row);
 
 

@@ -72,7 +72,6 @@
             
             // map geometry feature fields passed from server
             const typologies = <%- JSON.stringify(mapCanvas.typologies) %>;
-            console.log('typologies', typologies);
             // create a map in the "map" div, set view based on ejs template data passed from server
             map = L.map('map',{zoomControl: false, editable: true}).setView(mapView.center, mapView.zoom);
             
@@ -230,7 +229,6 @@
                 // without removing other event listeners
                 
                 setTypology = function(e){
-                    console.log('draw created', e);
                     // add typology to layer
                     e.layer.feature.properties.typology = typology;
                     map.off('draw:created', setTypology);
@@ -344,7 +342,6 @@
                         feature.properties.typology = typologySelector.selectedTypology();
                         // set custom properties based on form data
                         feature.properties.custom = typologySelector.data;
-                        console.log("feature after form submit", feature);
                         mapio.saveLayerToServer(layer);
                     }
                     
@@ -365,10 +362,7 @@
                     popupContainer.appendChild(typologySelector.typologyPropertiesForm.form);
                     
                     // set typology based on existing data
-                    console.log('setting typology preset feature', feature);
-                    console.log('setting typology preset typology ', feature.properties);
                     if(feature.properties.typology && feature.properties.typology.name && feature.properties.typology.name !== ""){
-                        console.log('setting typology selector to already known typology', feature.properties.typology);
                         typologySelector.update(
                             typology = feature.properties.typology,
                             data = feature.properties.custom ? feature.properties.custom : {}
@@ -444,6 +438,11 @@
 
                 
 
+            }
+
+            .leaflet-tile {
+                /* // filter 50% brightness and 15 deg hu */
+                filter: brightness(50%) hue-rotate(-45deg);
             }
             
             
@@ -782,20 +781,13 @@
             }
             
             var data = {};
-            console.log('this.typology', this.typology);
             this.typology.properties.forEach((field) => {
-                console.log('field', field);
                 if (field.type === 'text') {
-                    console.log('field.name', field.name);
-                    console.log('this.typologyPropertiesFormGroup', this.typologyPropertiesFormGroup);
                     var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
                     data[field.name] = input.value;
                 }
                 if (field.type === 'categorical') {
-                    console.log('field.name', field.name);
-                    console.log('this.typologyPropertiesFormGroup', this.typologyPropertiesFormGroup);
                     var select = this.typologyPropertiesFormGroup.querySelector(`select[name="${field.name}"]`);
-                    console.log('select', select);
                     data[field.name] = select.value;
                 }
             });

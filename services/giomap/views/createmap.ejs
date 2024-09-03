@@ -186,8 +186,6 @@ function saveMap (event, customGeoItems) {
 
     for (var i = 0; i < customGeoItems.length; i++) {
         // get name input string
-        console.log(customGeoItems[i]);
-        console.log(i);
         var customGeometryName = customGeoItems[i].nameInput.value;
         // get geometry type. use select items id to get selected value
         var geometryType = customGeoItems[i].geometryTypeInput.value;
@@ -234,7 +232,6 @@ function saveMap (event, customGeoItems) {
     }
 
     if(typologies.length<1){
-        console.log(typologies)
         issues.push('Map must have at least one Typology defined');
     }
 
@@ -243,7 +240,6 @@ function saveMap (event, customGeoItems) {
             issues.push('All Typologies must have a name');
         }
         if(typology.properties.length<1){
-            console.log('no named fields typ',typology);
             issues.push('Typologies must have at least one named data field.');
         }
     })

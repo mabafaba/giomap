@@ -42,10 +42,8 @@ const mapdrawing = require('./mapdrawing.model');
             // only keep user id and username
             mapCanvas.mapdrawings = await mapdrawing.populate(mapCanvas.mapdrawings, { path: 'createdBy', select: 'i_d username' });
             // copy user data to properties
-            console.log('mapdrawings pre', mapCanvas.mapdrawings);
             geojson = mapCanvas.mapdrawings.map((mapdrawing) => {
                 // convert to object
-                console.log("map drawing!", mapdrawing);
                 mapdrawing = mapdrawing.toObject();
                 mapdrawing.feature.properties.createdBy = mapdrawing.createdBy;
                 mapdrawing.feature.properties._id = mapdrawing._id;
@@ -56,7 +54,6 @@ const mapdrawing = require('./mapdrawing.model');
                 delete mapdrawing.createdBy;
                 delete mapdrawing.mapcanvas;
                 delete mapdrawing._id;
-                console.log("map drawing edited!", mapdrawing);
                 return mapdrawing.feature;
             });
             // wrap into feature collection
@@ -121,7 +118,6 @@ const mapdrawing = require('./mapdrawing.model');
         // only keep user id and username
         allMaps = await MapCanvas.populate(allMaps, { path: 'createdBy', select: 'i_d username' });
         allMapsJson = allMaps.map((map) => {
-            console.log('map', map);
             mapObj = map.toObject();
             // add boolean - is user creator?
             if (mapObj.createdBy && mapObj.createdBy._id == req.body.user.id) {

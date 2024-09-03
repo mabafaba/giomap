@@ -48,7 +48,22 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 if(data){
                     this.user = data;
                     // asign random color to user (hex)
-                    this.user.color = '#'+Math.floor(Math.random()*16777215).toString(16);                    
+                    const randomColor = (() => {
+                        "use strict";
+                      
+                        const randomInt = (min, max) => {
+                          return Math.floor(Math.random() * (max - min + 1)) + min;
+                        };
+                      
+                        return () => {
+                          var h = randomInt(0, 360);
+                          var s = 100;
+                          var l = randomInt(40, 90);
+                          return `hsl(${h},${s}%,${l}%)`;
+                        };
+                      })();
+
+                    this.changeDrawingColor(randomColor());                    
                 }
                 this.addEditingControls(this.map);
                 this.connectMapToServer(this.map, this.editingLayer);
@@ -84,13 +99,16 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     polyline: {
                         shapeOptions: {
                             color: this.user.color,
-                            fill: false
+                            fill: false,
+                            opacity: 1
+
                         }
                     },
                     polygon: {
                         shapeOptions: {
                             color: this.user.color,
-                            fill: false
+                            fill: true,
+                            opacity: 1
                         }
                     },
                     // circle: {
@@ -114,7 +132,9 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     {
                         shapeOptions: {
                             color: this.user.color,
-                            fill: false
+                            fill: true,
+                            opacity: 1,
+                            fillOpacity: 1
                             
                         }
                     },
@@ -352,6 +372,10 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 
                 // add color to feature
                 feature.properties.color = this.user.color;
+                feature.properties.opacity = 1;
+                feature.properties.fill = true;
+                feature.properties.fillColor = this.user.color;
+                feature.properties.fillOpacity = 1;
                 this.styleGeometry(layer);
                 
                 this.socket.emit('iMadeAGeometry!', {"layer": LayerToGeoJson(layer), "mapcanvasShareLinkId": mapCanvasShareLinkId});
@@ -420,9 +444,9 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 },
                 styleGeometry: function(layer){
                     color = layer.feature.properties.color ? layer.feature.properties.color : "#FF0000";
-                    
+                    opacity = layer.feature.properties.opacity ? layer.feature.properties.opacity : 1;
                     if(layer.setStyle){
-                        layer.setStyle({color: color, fill: false});
+                        layer.setStyle({color: color, fill: false, opacity: opacity});
                     }
                     
                     
