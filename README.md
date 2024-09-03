@@ -123,6 +123,15 @@ location /giomap-socket-io {
 
 ```
 
+after changing nginx config, test the configuration and reload nginx:
+
+```
+# test configuration
+sudo nginx -t
+# if all is well, reload nginx
+sudo systemctl reload nginx
+```
+
 # Stack
 
 - Server: [Node.js](https://nodejs.org/en/), [Express](https://expressjs.com/), [Socket.io](https://socket.io/)

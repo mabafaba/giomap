@@ -6,7 +6,8 @@ services:
     image: giomap
     container_name: giomap-web
     ports:
-      - "3000:3000"
+    # 3000:3000
+      - "3003:3000"
     environment:
       - DOCKER=true
       - JWT_SECRET_FILE=/run/secrets/jwt_secret
