@@ -14,25 +14,40 @@ giomap is open source and free to use (MIT License).
 - [Docker Compose Installed](https://docs.docker.com/compose/install/)
 
 
-If you have node/npm installed:
+### If you have node/npm installed:
 
 ```
 git clone https://github.com/mabafaba/giomap
 cd giomap
+```
+
+generate a secret key for JWT authentication. Run the following command in the terminal:
+
+```
+sh generate_secret_JWT.sh
+```
+
+build and run the docker container:
+
+```
 npm run docker
 ```
 
-Without node/npm installation:
+open in browser: http://localhost:3000
+
+
+### Without node/npm installation:
 ```
 git clone https://github.com/mabafaba/giomap
 cd giomap
+sh generate_secret_JWT.sh
 docker build -t giomap .
 docker-compose up
 browser http://localhost:3000
 ```
 
 
-### Manually
+### Installation without Docker 
 
 *Prerequisites*
 
@@ -50,24 +65,17 @@ See [MongoDB installation instructions](https://docs.mongodb.com/manual/installa
 git clone https://github.com/mabafaba/giomap
 cd giomap
 npm install
-```
 
+```
 
 ### Set environment variables
 
-Generate a secret key for JWT authentication. Run the following command in the terminal:
+by running the bash script
 
 ```
-node -e "console.log(require('crypto').randomBytes(256).toString('base64'));"
-```
+sh generate_secret_JWT.sh
 
-Create a file named `.env` in the root directory of the project with the following content:
 ```
-JWT_SECRET=secret
-```
-Where `secret` is the secret key generated in the previous step.
-
-
 ## Usage
 For production:
 
@@ -83,6 +91,13 @@ npm run dev
 ```
 
 App runs at localhost:3000 by default.
+
+
+## Reverse Proxy Configuration
+
+You need to configure a reverse proxy to route requests to the giomap server.
+Including one for the socket.io connection.
+Example with NGINX below.
 
 ## NGINX configuration
 
