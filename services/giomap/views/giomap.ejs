@@ -35,13 +35,377 @@
     <!-- post data div -->
 </head>
 <body>
-    <!-- button to log sel. loc -->
-    <!-- <button id="clickButton">Click me</button> -->
-    <!-- <div x-data="posts" x-init="$store.posts.refreshPosts()" > -->
-        <!-- navigation -->
-        <%- include('./navigation', {page:"giomap"}) %> 
+    
+    <%- include('./navigation', {page:"giomap"}) %>         
+    <div id="map"></div>
+    <div id="typologyActionControl"></div>
+    <%- include('./alert') %>
+    
+</body>
+</html>
+
+
+
+<script>
+    
+    // popup with map name and map description on page load
+    const description = <%- JSON.stringify(mapCanvas.description) %>
+    show_prompt('<%= mapCanvas.name %>', description, false, 'OK');
+    
+    
+    // ejs get mapCanvas share link id as passed to ejs template server side
+    // if not available, get it from url
+    
+    <% if(locals.mapCanvas.shareLinkId){ %>
+        var mapCanvasShareLinkId = <%- JSON.stringify(locals.mapCanvas.shareLinkId) %>;
         
-        <div id="map"></div>
+        <% } else { %>
+            
+            var mapCanvasShareLinkId = window.location.href.split('/shared/')[1];
+            <% } %>    
+            
+            // map canvas passed from server
+            const mapView = <%- JSON.stringify(mapCanvas.leafletView) %>;
+            
+            // map canvas passed from server
+            const mapCanvas = <%- JSON.stringify(mapCanvas) %>;
+            
+            // map geometry feature fields passed from server
+            const typologies = <%- JSON.stringify(mapCanvas.typologies) %>;
+            console.log('typologies', typologies);
+            // create a map in the "map" div, set view based on ejs template data passed from server
+            map = L.map('map',{zoomControl: false, editable: true}).setView(mapView.center, mapView.zoom);
+            
+            // add zoom control to map
+            L.control.zoom({
+                position: 'bottomright'
+            }).addTo(map);
+            
+            // add tile layer to map
+            osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+            
+            // add google satellite layer
+            googleSatHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{
+                maxZoom: 20,
+                subdomains:['mt0','mt1','mt2','mt3']
+            }).addTo(map);
+            
+            googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+                maxZoom: 20,
+                subdomains:['mt0','mt1','mt2','mt3']
+            }).addTo(map);
+            
+            
+            
+            // controls to toggle between tile layers
+            var baseMaps = {
+                "Map": osm,
+                "Satellite": googleSat,
+                "Hybrid": googleSatHybrid
+            };
+            // 
+            // L.control.layers(baseMaps).addTo(map);
+            // layers control bottom left
+            L.control.layers(baseMaps, null, {position: 'bottomleft'}).addTo(map);
+            
+            
+            // add graticule
+            graticule = zoomLimitedGraticule(map, 0.5, 7);
+            graticule.on();
+            
+            // add control to toggle graticule
+            L.Control.ToggleGraticule = L.Control.extend({
+                onAdd: function(map) {
+                    
+                    var controlDiv = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');                           
+                    controlDiv.innerHTML = '<a href="#" title="Toggle grid" role="button" aria-label="Toggle Grid" id="toggleGrid"><i class="bx bx-grid" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:black; margin: auto;"></i></a>';
+                    
+                    controlDiv.onclick = function(e){
+                        e.preventDefault();
+                        if(graticule.isOn){
+                            graticule.off();
+                            // change icon color
+                            controlDiv.innerHTML = '<a href="#" title="Toggle grid" role="button" aria-label="Toggle Grid" id="toggleGrid"><i class="bx bx-grid" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:gray; margin: auto;"></i></a>'
+                        } else {
+                            graticule.on();
+                            // change icon color
+                            controlDiv.innerHTML = '<a href="#" title="Toggle grid" role="button" aria-label="Toggle Grid" id="toggleGrid"><i class="bx bx-grid" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:black; margin: auto;"></i></a>'
+                        }
+                    }
+                    return controlDiv;
+                },
+                onRemove: function(map) {
+                    // Nothing to do here
+                }
+            });
+            
+            L.control.toggleGraticule = function(opts) {
+                return new L.Control.ToggleGraticule(opts);
+            }
+            L.control.toggleGraticule({ position: 'bottomright' }).addTo(map);
+            
+            updateGridControlButtonVisibility = function(){
+                if(map.getZoom() <= graticule.minZoom){
+                    document.getElementById('toggleGrid').style.display = 'none';
+                } else {
+                    document.getElementById('toggleGrid').style.display = 'block';
+                }
+            }
+            
+            updateGridControlButtonVisibility();
+            // on zoom, show or hide graticule button depending on zoom level
+            map.on('zoomend', updateGridControlButtonVisibility);
+            
+            
+            mapio = mapio(map, mapCanvasShareLinkId, addEditPropertiesPopupToLayer);
+            editingLayer = mapio.editingLayer;
+            
+            addTypologyActionButtons();
+
+            function addTypologyActionButtons(){
+                // for each typology, create a button that initates drawing of that typology.
+                // uses typology.geometryType to set drawing mode
+                // uses typology.name to set button text
+
+                // if no typologies
+                if(!typologies || typologies.length == 0){
+                    return;
+                }
+                // get container for buttons
+                var container = document.getElementById('typologyActionControl');
+                // clear container
+                container.innerHTML = "";
+
+
+                // for each typology
+
+
+                typologies.forEach(function(typology){
+                    // create button
+                    var button = document.createElement('button');
+                    // set button text to typology name
+                    button.innerHTML = 'draw <b>' + typology.name +"</b>";
+                    button.style.margin = "5px";
+                    // button shadow
+                    button.style.boxShadow = "0px 0px 5px 0px rgba(0,0,0,0.75)";
+                    // fully round sides
+                    button.style.borderRadius = "20px";
+                    // add event listener to button
+                    button.addEventListener('click', function(e){
+                        // prevent default action
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        initiateTypologyDrawing(typology);
+
+                    });
+                    // add button to container
+                    container.appendChild(button);
+                });
+
+                
+            }
+
+
+            function initiateTypologyDrawing(typology){
+
+                // get typology geometry type in leafler draw format
+                var drawSettings = {
+                    'Point': mapio.controls[0].options.draw["circlemarker"],
+                    "Line": mapio.controls[0].options.draw["polyline"],
+                    "Polygon": mapio.controls[0].options.draw["polygon"]
+                }
+
+                var drawConstructors = {
+                    'Point': L.Draw.CircleMarker,
+                    "Line": L.Draw.Polyline,
+                    "Polygon": L.Draw.Polygon
+                }
+                
+                new drawConstructors[typology.geometryType](map, drawSettings[typology.geometryType]).enable();
+
+                // when user finishes drawing, log to console. Then remove the event listener,
+                // without removing other event listeners
+                
+                setTypology = function(e){
+                    console.log('draw created', e);
+                    // add typology to layer
+                    e.layer.feature.properties.typology = typology;
+                    map.off('draw:created', setTypology);
+                    // safe feature to server now that typology is set
+                    mapio.saveLayerToServer(e.layer);
+                }
+                    // add this listener
+                    map.on('draw:created', setTypology);
+              
+                // when user aborts drawing in any way, remove event listeners
+
+                map.on('draw:drawstop', function(e){
+                    map.off('draw:created', setTypology);
+                    map.off('draw:drawstop', arguments.callee);
+                });
+
+
+
+            }
+            
+            
+            
+            function openGeoJsonFileDialog(){
+                
+                // create input element
+                var input = document.createElement('input');
+                // set input type to file
+                input.type = 'file';
+                // set input accept to geojson
+                input.accept = '.geojson';
+                // add event listener to input
+                input.addEventListener('change', function(e){
+                    // prevent default action
+                    e.preventDefault();
+                    e.stopImmediatePropagation()
+                    // get file
+                    var file = e.target.files[0];
+                    // create file reader
+                    var reader = new FileReader();
+                    // add event listener to reader
+                    reader.addEventListener('load', function(e){
+                        // prevent default action
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        // get file contents
+                        var contents = e.target.result;
+                        // parse contents as json
+                        var geojson = JSON.parse(contents);
+                        // create layers from geojson features and add them to the editing layer
+                        // not included in mapio, so doing it manually here
+                        geojson.features.forEach(function(feature){
+                            // add uuid to feature
+                            feature.properties.uuid = crypto.randomUUID();
+                            
+                            feature.properties.color = mapio.user.color;
+                            
+                            
+                            // send to server 
+                            mapio.socket.emit('iUploadedGeometriesFromFile!',
+                            {layer: feature, mapcanvasShareLinkId: mapio.mapCanvasShareLinkId}
+                            );
+                        });
+                        
+                        // add layers to map
+                        
+                        // close alert
+                        close_prompt();
+                        // new prompt: all went well
+                        show_prompt('Success!', 'GeoJSON file uploaded successfully.',false, "OK");
+                    });
+                    // read file as text
+                    reader.readAsText(file);
+                });
+                // display input
+                
+                input.click();
+            } 
+            
+            
+            
+            
+            function addEditPropertiesPopupToLayer (layer){
+                
+                // create typology selector and form
+                // 
+                var typologySelector = new TypologySelector(typologies, selectedTypology = null, onsubmit = submitPopupForm);
+                
+                
+                
+                function submitPopupForm (e) {
+                    
+                    // this function is created within addEditPropertiesPopupToLayer
+                    // so that it has access to the layer variable
+                    
+                    e.preventDefault(); // prevent default submit action
+                    e.stopImmediatePropagation(); // prevent other event listeners from firing
+                    
+                    // reset if cancel button is clicked
+                    if(e.submitter.value=="cancel"){
+                        layer.closePopup();
+                        return;
+                        
+                    }
+                    
+                    if(e.submitter.value=="save"){
+                        // make sure layer has a feature object with properties key
+                        var feature = layer.feature = layer.feature || {};
+                        feature.type = "Feature";
+                        feature.properties = feature.properties || {};
+                        // set typology based on selected typology
+                        feature.properties.typology = typologySelector.selectedTypology();
+                        // set custom properties based on form data
+                        feature.properties.custom = typologySelector.data;
+                        console.log("feature after form submit", feature);
+                        mapio.saveLayerToServer(layer);
+                    }
+                    
+                    layer.closePopup();
+                    
+                }
+                
+                layer.bindPopup();
+                
+                
+                layer.on('popupopen', function(e) {
+                    var feature = layer.feature = layer.feature || {};
+                    feature.type = "Feature";
+                    feature.properties = feature.properties || {};
+                    // pop up container
+                    var popupContainer = document.createElement('div');
+                    popupContainer.appendChild(typologySelector.html);
+                    popupContainer.appendChild(typologySelector.typologyPropertiesForm.form);
+                    
+                    // set typology based on existing data
+                    console.log('setting typology preset feature', feature);
+                    console.log('setting typology preset typology ', feature.properties);
+                    if(feature.properties.typology && feature.properties.typology.name && feature.properties.typology.name !== ""){
+                        console.log('setting typology selector to already known typology', feature.properties.typology);
+                        typologySelector.update(
+                            typology = feature.properties.typology,
+                            data = feature.properties.custom ? feature.properties.custom : {}
+
+                        );
+                    }
+                    
+                    // add typologyPropertiesForm to popup container
+                    
+                    
+                    // "created by" info (not editable)
+                    if(feature.properties.createdBy){
+                        var createdByParagraph = document.createElement('p');
+                        createdByParagraph.style.fontSize = "0.8em";
+                        createdByParagraph.style.color = "gray";
+                        createdByParagraph.innerHTML = `by <span id="createdBy">${feature.properties.createdBy.username}</span>`;
+                        // add to parent
+                        popupContainer.appendChild(createdByParagraph);
+                        popupContainer.appendChild(document.createElement('br'));
+                        popupContainer.appendChild(document.createElement('br'));
+                        
+                    }
+                    
+                    // append form to popup content
+                    layer.setPopupContent(popupContainer);
+                    
+                    
+                    
+                });
+                
+                
+                
+                return layer;
+                
+            }
+            
+        </script>
         
         
         <style>
@@ -49,7 +413,7 @@
                 
                 width: 100vw;
                 /* view height minus some */
-                height: calc(100vh - 50px);
+                height: calc(100vh - 70px);
                 margin-top: 70px;
                 
             }
@@ -61,455 +425,383 @@
             
             
             
+            #typologyActionControl {
+                /* hover above everything bottom center */
+                /* space content evenly */
+                /* create new crows if too full for width */
+                max-width: 80%;
+                
+                position: fixed;
+                bottom: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-evenly;
+                flex-direction: row;
+                flex-wrap: wrap;
+                z-index: 1000;
+
+                
+
+            }
             
-        </style>
+            
+            /*  on leaflet control disable the sakura's a:hover styling */
+            .leaflet-control a:hover {
+                color: inherit;
+            }
+            
+            .leaflet-popup-content {
+                min-width: 150px;
+                /* everything regular sized, not smaller */
+                font-size: 1.2rem;
+                
+                overflow-y: scroll;
+            }
+            p {
+                display: inline;
+            }
+            
+            .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+                /* regular font size (relative
+                font-size: 1rem;
+                min-width:100px;
+                */
+            }
+            
+            .leaflet-popup-tip-container {
+                
+                font-size: 1rem;
+                /* min-width:100px; */
+            } 
+            
+            /* <i> children of <a> of leaflet-control-custom */
+                .leaflet-control-custom a i {
+                    font-size: 2rem; */
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color:black;
+                    margin: auto;
+                    padding-top:5px;
+                }
+                
+                
+                .leaflet-div-icon {
+                    margin-left: -4px !important;
+                    margin-top: -4px !important;
+                    width: 8px !important;
+                    height: 8px !important;
+                }
+                
+            </style>
+            
+            
+
+
+<script>
+    
+    
+    
+    
+    
+    class TypologySelector {
+        constructor(typologies, selectedTypology, onsubmit, data) {
+            this.typologies = typologies;
+            this.html = this.buildHtml()
+            this.typologyPropertiesForm = new TypologyPropertiesForm(selectedTypology, data, onsubmit);
+
+            // if only one option exists, set typology
+            if(this.typologies && this.typologies.length==1){
+                this.update(typologies[0]);
+            }
+
+            // update form when typology changes
+            this.html.addEventListener('change', (e) => {
+                // find typology 
+                var typology = this.typologies.find(t => t.name === e.target.value);
+                this.update(typology);
+            });
+        }
+
+        get data(){
+            return this.typologyPropertiesForm.data;
+        }
         
+        update(typology, data){
+            // check if typology exists in typologies
+            if(typology){
+            var typologyFound = this.typologies.find(t => t.name === typology.name);
+
+            if(!typologyFound){
+                console.error("Typology not found in typologies", typology);
+                return;
+            }
+                    
+                // set input field value
+            this.html.value = typology.name;
+            }
+            // update form fields and data
+            this.typologyPropertiesForm.update(typology, data)
+
+        }
         
-        <script>
+        buildHtml() {
+            var typologySelector = document.createElement('select');
+            typologySelector.id = "typologySelector";
+            typologySelector.name = "typologySelector";
+            typologySelector.style.width = "100%";
+            typologySelector.style.marginBottom = "10px";
+            // larger font size
+            typologySelector.style.fontSize = '1.3em';
+            typologySelector.style.fontWeight = 'bold';
+            typologySelector.style.color = 'white';
+
+
+
+            // empty default option
             
-            // popup with map name and map description on page load
-            const description = <%- JSON.stringify(mapCanvas.description) %>
-            show_prompt('<%= mapCanvas.name %>', description, false, 'OK');
+            // if more than one type
+            if(this.typologies.length > 1){
+            var emptyOption = document.createElement('option');
+            emptyOption.hidden = true;
+            emptyOption.disabled = true;
+            emptyOption.selected = true;
+            emptyOption.value = "";
+            emptyOption.innerHTML = "select type";
+
+            typologySelector.appendChild(emptyOption);
+            }
+            // one option per typology
+            this.typologies.forEach(function(typology) {
+                var option = document.createElement('option');
+                option.value = typology.name;
+                option.innerHTML = typology.name;
+                typologySelector.appendChild(option);
+            });
+
+            return typologySelector;
+        }
+        
+        selectedTypologyName() {
+            return this.html.value;
+        }
+        
+        selectedTypology() {
+            return this.typologies.find(typology => typology.name === this.selectedTypologyName());
+        }
+        
+
+    }
+    
+    
+    
+    
+    class TypologyPropertiesForm {
+        constructor(typology, data, onsubmit) {
             
+            this.typologyPropertiesFormGroup = null;
+            this.form = null;
+            this.onsubmit = onsubmit;
+            this.createFormStructure();
             
-            // ejs get mapCanvas share link id as passed to ejs template server side
-            // if not available, get it from url
+            if(typology){
+                this.typology = typology;
+            }
             
-            <% if(locals.mapCanvas.shareLinkId){ %>
-                var mapCanvasShareLinkId = <%- JSON.stringify(locals.mapCanvas.shareLinkId) %>;
-                <% } else { %>
+            if(typology && data){
+                this.updateData(data);
+            }
+            
+            if(!typology && data){
+                throw new Error("can't fill form data without typology");
+            }
+            
+        }
+        
+        createFormStructure() {
+            this.form = document.createElement('form');
+            this.form.id = "popupForm";
+            this.form.className = "popupForm";
+            this.form.addEventListener("submit", this.onsubmit);
+            this.form.addEventListener("cancel", this.onsubmit);
+            
+            this.typologyPropertiesFormGroup = document.createElement('div');
+            this.typologyPropertiesFormGroup.className = "form-group-user-defined-properties";
+            this.typologyPropertiesFormGroup.id = "typologyPropertiesFormGroup";
+            
+            this.form.appendChild(this.typologyPropertiesFormGroup);
+            
+            var saveButton = document.createElement('button');
+            saveButton.type = "submit";
+            saveButton.name = "action";
+            saveButton.value = "save";
+            saveButton.innerHTML = "Save";
+            saveButton.style.marginRight = "5px";
+            this.form.appendChild(saveButton);
+            
+            var cancelButton = document.createElement('button');
+            cancelButton.type = "submit";
+            cancelButton.name = "action";
+            cancelButton.value = "cancel";
+            cancelButton.innerHTML = "Cancel";
+            this.form.appendChild(cancelButton);
+        }
+        
+        update (typology, data){
+            if(typology){
+            this.updateTypology(typology);
+            }
+            if(data){
+            this.updateData(data);
+            }
+        }
+        updateTypology(typology) {
+            if(!typology){
+                console.error("can't update form without typology");
+                return;
+            }
+            this.typology = typology;
+            this.updatePropertyInputFields(typology);
+        }
+        
+        updatePropertyInputFields(typology) {
+            this.typologyPropertiesFormGroup.innerHTML = "";
+            if(!typology){
+                this.typology = null;
+                return;
+            }
+            
+            typology.properties.forEach((field) => {
+                var fieldLabel = document.createElement('label');
+                fieldLabel.for = field.name;
+                fieldLabel.innerHTML = field.name;
+                this.typologyPropertiesFormGroup.appendChild(fieldLabel);
+                this.typologyPropertiesFormGroup.appendChild(document.createElement('br'));
+                
+                if (field.type === 'text') {
+                    var fieldInput = document.createElement('input');
+                    fieldInput.id = field.name;
+                    fieldInput.name = field.name;
+                    fieldInput.placeholder = field.name;
+                    fieldInput.style.width = "100%";
+                    fieldInput.style.marginBottom = "10px";
+                    fieldInput.rows = 1;
+                    fieldInput.cols = 20;
+                    this.typologyPropertiesFormGroup.appendChild(fieldInput);
+                }
+                
+                if (field.type === 'categorical') {
+                    var fieldSelect = document.createElement('select');
+                    fieldSelect.id = field.name;
+                    fieldSelect.name = field.name;
+                    fieldSelect.innerHTML = field.name;
+                    fieldSelect.style.width = "100%";
+                    fieldSelect.style.marginBottom = "10px";
                     
-                    var mapCanvasShareLinkId = window.location.href.split('/shared/')[1];
-                    <% } %>    
+                    var emptyOption = document.createElement('option');
+                    emptyOption.hidden = true;
+                    emptyOption.disabled = true;
+                    emptyOption.selected = true;
+                    emptyOption.value = "";
+                    emptyOption.innerHTML = "select";
+                    fieldSelect.appendChild(emptyOption);
                     
-                    // map canvas passed from server
-                    const mapView = <%- JSON.stringify(mapCanvas.leafletView) %>;
-                    
-                    // map geometry feature fields passed from server
-                    const geometryPropertyFields = <%- JSON.stringify(mapCanvas.geometryPropertyFields) %>;
-                    console.log(geometryPropertyFields);
-                    // create a map in the "map" div, set view based on ejs template data passed from server
-                    map = L.map('map',{zoomControl: false, editable: true}).setView(mapView.center, mapView.zoom);
-                    
-                    // add zoom control to map
-                    L.control.zoom({
-                        position: 'bottomright'
-                    }).addTo(map);
-                    
-                    // add tile layer to map
-                    osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    }).addTo(map);
-                    
-                    // add google satellite layer
-                    googleSatHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{
-                        maxZoom: 20,
-                        subdomains:['mt0','mt1','mt2','mt3']
-                    }).addTo(map);
-                    
-                    googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
-                        maxZoom: 20,
-                        subdomains:['mt0','mt1','mt2','mt3']
-                    }).addTo(map);
-                    
-                    
-                    
-                    // controls to toggle between tile layers
-                    var baseMaps = {
-                        "Map": osm,
-                        "Satellite": googleSat,
-                        "Hybrid": googleSatHybrid
-                    };
-                    // 
-                    // L.control.layers(baseMaps).addTo(map);
-                    // layers control bottom left
-                    L.control.layers(baseMaps, null, {position: 'bottomleft'}).addTo(map);
-                    
-                    
-                    // add graticule
-                    graticule = zoomLimitedGraticule(map, 0.5, 7);
-                    graticule.on();
-                    
-                    // add control to toggle graticule
-                    L.Control.ToggleGraticule = L.Control.extend({
-                        onAdd: function(map) {
-                            
-                            var controlDiv = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');                           
-                            controlDiv.innerHTML = '<a href="#" title="Toggle grid" role="button" aria-label="Toggle Grid" id="toggleGrid"><i class="bx bx-grid" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:black; margin: auto;"></i></a>';
-                            
-                            controlDiv.onclick = function(e){
-                                e.preventDefault();
-                                if(graticule.isOn){
-                                    graticule.off();
-                                    // change icon color
-                                    controlDiv.innerHTML = '<a href="#" title="Toggle grid" role="button" aria-label="Toggle Grid" id="toggleGrid"><i class="bx bx-grid" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:gray; margin: auto;"></i></a>'
-                                } else {
-                                    graticule.on();
-                                    // change icon color
-                                    controlDiv.innerHTML = '<a href="#" title="Toggle grid" role="button" aria-label="Toggle Grid" id="toggleGrid"><i class="bx bx-grid" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:black; margin: auto;"></i></a>'
-                                }
-                            }
-                            return controlDiv;
-                        },
-                        onRemove: function(map) {
-                            // Nothing to do here
-                        }
+                    field.categoricalValues.forEach((value) => {
+                        var option = document.createElement('option');
+                        option.value = value;
+                        option.innerHTML = value;
+                        fieldSelect.appendChild(option);
                     });
                     
-                    L.control.toggleGraticule = function(opts) {
-                        return new L.Control.ToggleGraticule(opts);
-                    }
-                    L.control.toggleGraticule({ position: 'bottomright' }).addTo(map);
-                    
-                    updateGridControlButtonVisibility = function(){
-                        if(map.getZoom() <= graticule.minZoom){
-                            document.getElementById('toggleGrid').style.display = 'none';
-                        } else {
-                            document.getElementById('toggleGrid').style.display = 'block';
-                        }
-                    }
-                    
-                    updateGridControlButtonVisibility();
-                    // on zoom, show or hide graticule button depending on zoom level
-                    map.on('zoomend', updateGridControlButtonVisibility);
-                    
-                    
-                    mapio = mapio(map, mapCanvasShareLinkId, addEditPropertiesPopupToLayer);
-                    editingLayer = mapio.editingLayer;
-                    
-                    
-                    
-                    
-                    
-                    function openGeoJsonFileDialog(){
-                        
-                        // create input element
-                        var input = document.createElement('input');
-                        // set input type to file
-                        input.type = 'file';
-                        // set input accept to geojson
-                        input.accept = '.geojson';
-                        // add event listener to input
-                        input.addEventListener('change', function(e){
-                            // prevent default action
-                            e.preventDefault();
-                            e.stopImmediatePropagation()
-                            // get file
-                            var file = e.target.files[0];
-                            // create file reader
-                            var reader = new FileReader();
-                            // add event listener to reader
-                            reader.addEventListener('load', function(e){
-                                // prevent default action
-                                e.preventDefault();
-                                e.stopImmediatePropagation();
-                                // get file contents
-                                var contents = e.target.result;
-                                // parse contents as json
-                                var geojson = JSON.parse(contents);
-                                // create layers from geojson features and add them to the editing layer
-                                // not included in mapio, so doing it manually here
-                                geojson.features.forEach(function(feature){
-                                    // add uuid to feature
-                                    feature.properties.uuid = crypto.randomUUID();
-                                    
-                                    feature.properties.color = mapio.user.color;
-                                    
-                                    
-                                    // send to server 
-                                    mapio.socket.emit('iUploadedGeometriesFromFile!',
-                                    {layer: feature, mapcanvasShareLinkId: mapio.mapCanvasShareLinkId}
-                                    );
-                                });
-                                
-                                // add layers to map
-                                
-                                // close alert
-                                close_prompt();
-                                // new prompt: all went well
-                                show_prompt('Success!', 'GeoJSON file uploaded successfully.',false, "OK");
-                            });
-                            // read file as text
-                            reader.readAsText(file);
-                        });
-                        // display input
-                        
-                        input.click();
-                    } 
-                    
-                    
-                    function addEditPropertiesPopupToLayer (layer){
-                        
-                        function submitPopupForm (e) {
-                            
-                            
-                            // this function is created within addEditPropertiesPopupToLayer
-                            // so that it has access to the layer variable
-                            // see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures
-                            
-                            e.preventDefault(); // prevent default submit action
-                            e.stopImmediatePropagation(); // prevent other event listeners from firing
-                            
-                            
-                            // reset if cancel button is clicked
-                            if(e.submitter.value=="cancel"){
-                                
-                                layer.closePopup();
-                                return;
-                            }
-                            
-                            
-                            // copy form data to layer
-                            var feature = layer.feature = layer.feature || {};
-                            feature.type = "Feature";
-                            feature.properties = feature.properties || {};
-                            
-                            // convert form data to properties in the geometry feature
-                            var formData = new FormData(e.target);
-                            
-                            // set layer properties based on each entry in the form data like this:
-                            // formdata = {somekey: somevalue, someotherkey: someothervalue}
-                            // feature.properties["somekey"] = feature.properties["somevalue"] || "";
-                            console.log('props before', feature.properties);
-                            // add feature.properties.custom if not already present
-                            if(!feature.properties.custom){
-                                feature.properties.custom = {};
-                            }
-                            for (var pair of formData.entries()) {
-                                // console.log(pair[0]+ ', ' + pair[1]); 
-                                // only if value is not empty or empty string
-                                if(pair[1] && pair[1] !== ""){
-                                    feature.properties.custom[pair[0]] = pair[1];
-                                    console.log('after pair', pair);
-                                    console.log(feature.properties.custom);
-                                }
-                                
-                                
-                                
-                            }
-                            console.log('props after', feature.properties);
-                            console.log('layer', layer);
-                            
-                            
-                            
-                            
-                            // prevent default submit action
-                            if(e.submitter.value=="save"){
-                                mapio.saveLayerToServer(layer);
-                            }
-                            layer.closePopup();
-                            
-                        }
-                        
-                        layer.bindPopup();
-                        
-                        // add pop up event listener
-                        layer.on('popupopen', function(e) {
-                            var feature = layer.feature = layer.feature || {};
-                            feature.type = "Feature";
-                            feature.properties = feature.properties || {};
-                            feature.properties["name"] = feature.properties["name"] || "";
-                            feature.properties["description"] = feature.properties["description"] || "";
-                            
-                            // form element
-                            var form = document.createElement('form');
-                            form.id = "popupForm";
-                            form.className = "popupForm";
-                            
-                            // create form group for user defined properties
-                            var userDefinedPropertiesGroup = document.createElement('div');
-                            userDefinedPropertiesGroup.className = "form-group-user-defined-properties";
-                            // set id
-                            userDefinedPropertiesGroup.id = "userDefinedPropertiesGroup";
-                            
-                            // iterate over user defined properties
-                            // append user defined properties group to form
-                            form.appendChild(userDefinedPropertiesGroup);
-                            
-                            
-                            // add drop down menue for geometry properties from geometryPropertyFields array
-                            geometryPropertyFields.forEach(function(field){
-                                // label
-                                var fieldLabel = document.createElement('label');
-                                fieldLabel.for = field.name;
-                                fieldLabel.innerHTML = field.name;
-                                userDefinedPropertiesGroup.appendChild(fieldLabel);
-                                userDefinedPropertiesGroup.appendChild(document.createElement('br'));
-                                
-                                // if field is text
-                                //     var descriptionTextarea = document.createElement('textarea');
-                                // descriptionTextarea.id = "description";
-                                // descriptionTextarea.name = "description";
-                                // descriptionTextarea.placeholder = "Enter description";
-                                // descriptionTextarea.rows = 4;
-                                // descriptionTextarea.cols = 20;
-                                
-                                if(field.type === 'text'){
-                                    var fieldInput = document.createElement('input');
-                                    fieldInput.id = field.name;
-                                    fieldInput.name = field.name;
-                                    fieldInput.placeholder = field.name;
-                                    fieldInput.style.width = "100%";
-                                    fieldInput.style.marginBottom = "10px";
-                                    // set rows / cols
-                                    fieldInput.rows = 1;
-                                    fieldInput.cols = 20;
-                                    // add value if already present
-                                    if(feature.properties.custom && feature.properties.custom[field.name]){
-                                        fieldInput.value = feature.properties.custom[field.name];
-                                    }
-
-                                    userDefinedPropertiesGroup.appendChild(fieldInput);
-                                }
-                                
-                                // if field is categorical
-                                if(field.type === 'categorical'){
-                                    // select
-                                    var fieldSelect = document.createElement('select');
-                                    fieldSelect.id = field.name;
-                                    fieldSelect.name = field.name;
-                                    fieldSelect.innerHTML = field.name;
-                                    fieldSelect.style.width = "100%";
-                                    fieldSelect.style.marginBottom = "10px";
-                                    // add empty option
-                                    var emptyOption = document.createElement('option');
-                                    emptyOption.hidden = true;
-                                    emptyOption.disabled = true;
-                                    emptyOption.selected = true;
-                                    emptyOption.value = "";
-                                    emptyOption.innerHTML = "select";
-                                    fieldSelect.appendChild(emptyOption);
-                                    // add options
-                                    field.categoricalValues.forEach(function(value){
-                                        var option = document.createElement('option');
-                                        option.value = value;
-                                        option.innerHTML = value;
-                                        fieldSelect.appendChild(option);
-                                    });
-
-                                    userDefinedPropertiesGroup.appendChild(fieldSelect);
-                                }
-
-                                
-                                userDefinedPropertiesGroup.appendChild(document.createElement('br'));
-                            });
-
-                                                        
-                            // if data is avaliable, fill in the form
-                            geometryPropertyFields.forEach(function(field){
-                                
-                                if(feature.properties.custom && feature.properties.custom[field.name]){
-                                    // categorical data
-                                    if(field.type === 'categorical'){
-                                        var select = userDefinedPropertiesGroup.querySelector(`select[name="${field.name}"]`);
-                                        select.value = feature.properties.custom[field.name];
-                                    }
-                                    if(field.type === 'text'){
-                                        var input = userDefinedPropertiesGroup.querySelector(`input[name="${field.name}"]`);
-                                        input.value = feature.properties.custom[field.name];
-                                    }
-                                } 
-                            });
-                            
-                            // created by paragraph
-                            if(feature.properties.createdBy){
-                                var createdByParagraph = document.createElement('p');
-                                createdByParagraph.style.fontSize = "0.8em";
-                                createdByParagraph.style.color = "gray";
-                                createdByParagraph.innerHTML = `by <span id="createdBy">${feature.properties.createdBy.username}</span>`;
-                                form.appendChild(createdByParagraph);
-                                form.appendChild(document.createElement('br'));
-                                form.appendChild(document.createElement('br'));
-                            }
-                            
-                            // save button
-                            var saveButton = document.createElement('button');
-                            saveButton.type = "submit";
-                            saveButton.name = "action";
-                            saveButton.value = "save";
-                            saveButton.innerHTML = "Save";
-                            form.appendChild(saveButton);
-                            // cancel button
-                            var cancelButton = document.createElement('button');
-                            cancelButton.type = "submit";
-                            cancelButton.name = "action";
-                            cancelButton.value = "cancel";
-                            cancelButton.innerHTML = "Cancel";
-                            form.appendChild(cancelButton);
-                            // append form to popup content
-                            layer.setPopupContent(form);
-                            
-                            
-                            
-                            
-                            document.getElementById("popupForm").addEventListener("submit", submitPopupForm);
-                            document.getElementById("popupForm").addEventListener("cancel", submitPopupForm);
-                            
-                            
-                        });
-                        
-                        return layer;
-                        
-                    }
-                    
-                </script>
+                    this.typologyPropertiesFormGroup.appendChild(fieldSelect);
+                }
                 
-                
-                <style>
-                    
-                    /*  on leaflet control disable the sakura's a:hover styling */
-                    .leaflet-control a:hover {
-                        color: inherit;
-                    }
-                    
-                    .leaflet-popup-content {
-                        min-width: 150px;
-                        /* everything regular sized, not smaller */
-                        font-size: 1.2rem;
-                        
-                        overflow-y: scroll;
-                    }
-                    p {
-                        display: inline;
-                    }
-                    
-                    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-                        /* regular font size (relative
-                        font-size: 1rem;
-                        min-width:100px;
-                        */
-                    }
-                    
-                    .leaflet-popup-tip-container {
-                        
-                        font-size: 1rem;
-                        /* min-width:100px; */
-                    } 
-                    
-                    /* <i> children of <a> of leaflet-control-custom */
-                        .leaflet-control-custom a i {
-                            font-size: 2rem; */
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            color:black;
-                            margin: auto;
-                            padding-top:5px;
-                        }
-                        
-                        
-                        .leaflet-div-icon {
-                            margin-left: -4px !important;
-                            margin-top: -4px !important;
-                            width: 8px !important;
-                            height: 8px !important;
-                        }
-                        
-                    </style>
-                    
-                    
-                    <!-- include alert -->
-                    <%- include('./alert') %>
-                </body>
-                </html>
+                this.typologyPropertiesFormGroup.appendChild(document.createElement('br'));
+            });
+        }
+        
+        setPropertyValue(field, value) {
+            if(!this.typology){
+                console.error("can't set property value without typology");
+                return;
+            }
+            // warn if unknown fields are present
+            if (!this.typology.properties.find((f) => f.name === field.name)) {
+                console.warn(`Unknown field ${field.name} in data, value:`, value);
+            }
+            if (field.type === 'text') {
+                var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
+                input.value = value;
+            }
+            if (field.type === 'categorical') {
+                var select = this.typologyPropertiesFormGroup.querySelector(`select[name="${field.name}"]`);
+                select.value = value;
+            }
+        }
+        
+        updateData(data) {
+            // warn if unknown fields are present
+
+            if(!data){
+                console.warn("no data to update form with");
+                return;
+            }
+            
+            Object.keys(data).forEach((key) => {
+                if (!this.typology.properties.find((field) => field.name === key)) {
+                    console.warn(`Unknown field ${key} in data, value:`, data[key]);
+                }
+            });
+
+
+            
+            if(!this.typology){
+                console.error("can't set property value without typology");
+                return;
+            }
+            
+
+            this.typology.properties.forEach((field) => {
+                if (data[field.name]) {
+                    this.setPropertyValue(field, data[field.name]);
+                } else {
+                    this.setPropertyValue(field, "");
+                }
+            });
+        }
+        get data() {
+            
+            // error if no typology
+            if(!this.typology){
+                // warn
+                console.warn("no typology set, returning empty object");
+                // return empty object
+                return {};
+            }
+            
+            var data = {};
+            console.log('this.typology', this.typology);
+            this.typology.properties.forEach((field) => {
+                console.log('field', field);
+                if (field.type === 'text') {
+                    console.log('field.name', field.name);
+                    console.log('this.typologyPropertiesFormGroup', this.typologyPropertiesFormGroup);
+                    var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
+                    data[field.name] = input.value;
+                }
+                if (field.type === 'categorical') {
+                    console.log('field.name', field.name);
+                    console.log('this.typologyPropertiesFormGroup', this.typologyPropertiesFormGroup);
+                    var select = this.typologyPropertiesFormGroup.querySelector(`select[name="${field.name}"]`);
+                    console.log('select', select);
+                    data[field.name] = select.value;
+                }
+            });
+            return data;
+        }
+    }
+    
+    
+</script>

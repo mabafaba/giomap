@@ -52,6 +52,8 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 }
                 this.addEditingControls(this.map);
                 this.connectMapToServer(this.map, this.editingLayer);
+                // resize window to make sure map is displayed correctly
+                window.dispatchEvent(new Event('resize'));
             });
             
         },
@@ -91,21 +93,23 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                             fill: false
                         }
                     },
-                    circle: {
-                        shapeOptions: {
-                            color: this.user.color,
-                            fill: false
+                    // circle: {
+                    //     shapeOptions: {
+                    //         color: this.user.color,
+                    //         fill: false
                             
-                        }
-                    },
-                    rectangle: {
-                        shapeOptions: {
-                            color: this.user.color,
-                            fill: false
+                    //     }
+                    // },
+                    circle: false,
+                    // rectangle: {
+                    //     shapeOptions: {
+                    //         color: this.user.color,
+                    //         fill: false
                             
-                        },
-                        // remove marker from draw control
-                    },
+                    //     },
+                    //     // remove marker from draw control
+                    // },
+                    rectangle: false,
                     circlemarker:
                     {
                         shapeOptions: {
@@ -342,7 +346,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 feature.properties.uuid = feature.properties.uuid || crypto.randomUUID();
 
                 // custom properties should already be set.
-                
+
                 // add user to feature
                 feature.properties.createdBy = this.user;
                 

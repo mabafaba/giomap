@@ -27,22 +27,34 @@ const mapCanvasSchema = new mongoose.Schema({
         }
     },
       // array of any length where each element is an object with at least a name and a type and a value
-    geometryPropertyFields:  [
+    typologies:  [
         {
             name: {
                 type: String,
                 required: true
             },
-            type: { // must be 'categorical' or 'text'
+            geometryType: { // must be 'point', 'line', 'polygon', 'circle', 'rectangle'
                 type: String,
                 required: true,
-                enum: ['categorical', 'text']
+                enum: ['Point', 'Line', 'Polygon', 'Circle', 'Rectangle']
             },
-            // additional information for categorical fields. required when type is 'categorical'
-            categoricalValues: {
-                type: Array,
-                required: false
+            properties: [{
+                name: {
+                    type: String,
+                    required: true
+                },
+                type: { // must be 'categorical' or 'text'
+                    type: String,
+                    required: true,
+                    enum: ['categorical', 'text']
+                },
+                // additional information for categorical fields. required when type is 'categorical'
+                categoricalValues: {
+                    type: Array,
+                    required: false
+                }
             }
+            ]
         }
     ],
   

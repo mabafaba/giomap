@@ -42,10 +42,9 @@
             <p>The description is displayed as an info text when opening the map.</p>
             <textarea id="description" name="description" placeholder="Enter description" rows="4" cols="20"></textarea><br>
             <br>
-            <label for="customGeoItems">Geometry Properties</label><br>    
-            <p>Define what additional information users can add to their drawn geometries. You can define different types of elements that people can add to the map.
+            <label for="customGeoItems">Geometry Typologies</label><br>    
+            <p>Define what different kind of elements users can add to the map.
                 For each type, you can define a name, what kind of geometry it should be, and a list of possible values.</p>
-
                 <p>If you add options to a data field (type in the field and hit enter), the field will be a dropdown list. If you leave the 'options' field empty, it becomes a free text field. </p>
             <div id="customGeoItems"></div>
             <!-- button to add custom geo items -->
@@ -162,14 +161,14 @@ document.getElementById('createMapForm').addEventListener('submit', function(eve
     const action = event.submitter.value;
     // call corresponding function
     if (action === 'save') {
-        saveMap(event);
+        saveMap(event, customGeoItems);
     } else if (action === 'cancel') {
         cancelMap(event);
     }
 });
 
 
-function saveMap (event) {
+function saveMap (event, customGeoItems) {
     event.preventDefault();
     // get form data
     const formData = new FormData(event.target);
@@ -181,16 +180,25 @@ function saveMap (event) {
     const mapView = getMapPerspective();
 
     // geometry property fields
-    var geometryPropertyFields = tableTags.data;
-    console.log('saving map...')
-    console.log(geometryPropertyFields)
-    // remove fields with no name
-    geometryPropertyFields = geometryPropertyFields.filter(field => {    
-    return (field.name !== '')
-})
+    var typologies = [];
+    // get all custom geo items
+    // iterate over all custom geo items
 
-
-    geometryPropertyFields = geometryPropertyFields.map(field => {
+    for (var i = 0; i < customGeoItems.length; i++) {
+        // get name input string
+        console.log(customGeoItems[i]);
+        console.log(i);
+        var customGeometryName = customGeoItems[i].nameInput.value;
+        // get geometry type. use select items id to get selected value
+        var geometryType = customGeoItems[i].geometryTypeInput.value;
+        // custom feature fields
+        var customFeatureFields = customGeoItems[i].customFeatureInput.data;
+        // remove empty fields
+        customFeatureFields = customFeatureFields.filter(field => {
+            return field.name !== '';
+        });
+    
+        customFeatureFields.map(field => {
         // if theres no values, set type to text.
         //Otherwise set type to categorical and set categorical values
         if(field.values.length === 0) {
@@ -199,9 +207,60 @@ function saveMap (event) {
         field.type = 'categorical';
         field.categoricalValues = field.values;
         }
+
+
     delete field.values;
        return field;
     });
+
+        // add to geometry property fields
+        typologies.push({
+            name: customGeometryName,
+            geometryType: geometryType,
+            properties: customFeatureFields
+        });
+
+
+    }
+
+
+
+    // validate inputs
+
+    var issues = [];
+
+    if(!name | name ==''){
+        issues.push('Map must have a name')
+    }
+
+    if(typologies.length<1){
+        console.log(typologies)
+        issues.push('Map must have at least one Typology defined');
+    }
+
+    typologies.forEach(typology => {
+        if(!typology.name || typology.name === ""){
+            issues.push('All Typologies must have a name');
+        }
+        if(typology.properties.length<1){
+            console.log('no named fields typ',typology);
+            issues.push('Typologies must have at least one named data field.');
+        }
+    })
+
+    // remove duplicate issues
+    issues = [...new Set(issues)]
+
+    if(issues.length>0){
+        issuesHtml ="&#x2022 " + issues.join('<br><br>&#x2022 ');
+        show_prompt("Could not create map", issuesHtml)
+        return;
+
+    }
+
+
+
+ 
 
 
 
@@ -215,7 +274,7 @@ function saveMap (event) {
             name: name,
             description: description,
             leafletView: mapView,
-            geometryPropertyFields: geometryPropertyFields
+            typologies: typologies
         })
     }) // if status is ok, get the map id from the response
     .then(res => {
@@ -252,6 +311,8 @@ function getMapPerspective() {
   function setMapPerspective(perspective) {
     map.setView(perspective.center, perspective.zoom);
   }
+
+customGeoItems = [];
 
 function addCustomGeoItem () {
     // create div, add tabletags element, add to customGeoItems div
@@ -304,39 +365,23 @@ function addCustomGeoItem () {
     var geometryTypeSelect = document.createElement('select');
     geometryTypeSelect.style.width = '100%';
     geometryTypeSelect.style['margin-bottom'] = '0px';
-    var geometryTypes = ['Point', 'Line', 'Polygon', 'Circle', 'Rectangle'];
+    var geometryTypes = ['Point', 'Line', 'Polygon'];
 
-    // add check boutton for each geometry type
-    var geometryTypeCheckboxes = document.createElement('div');
+    // add dropdown menu for geometry type
+    var geometryTypeSelect = document.createElement('select');
+    geometryTypeSelect.id = 'geometryTypeSelect';
+    geometryTypeSelect.style.width = '100%';
+    geometryTypeSelect.style['margin-bottom'] = '0px';
     geometryTypes.forEach(type => {
-        var checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.value = type;
-        checkbox.id = type;
-        var label = document.createElement('label');
-        label.htmlFor = type;
-        label.innerHTML = type;
-        label.style.display = 'inline';
-        geometryTypeCheckboxes.appendChild(checkbox);
-        geometryTypeCheckboxes.appendChild(label);
-        geometryTypeCheckboxes.appendChild(document.createElement('br'));
+        var option = document.createElement('option');
+        option.value = type;
+        option.text = type;
+        geometryTypeSelect.appendChild(option);
     });
-
-    
-
-    // geometryTypes.forEach(type => {
-    //     var option = document.createElement('option');
-    //     option.value = type;
-    //     option.text = type;
-    //     geometryTypeSelect.appendChild(option);
-    // });
-
-    // geometryTypeSelectCell.appendChild(geometryTypeSelect);
-    // geometryTypeRow.appendChild(geometryTypeSelectCell);
-
-    geometryTypeSelectCell.appendChild(geometryTypeCheckboxes);
+    geometryTypeSelectCell.appendChild(geometryTypeSelect);
     geometryTypeRow.appendChild(geometryTypeSelectCell);
 
+    
     // append geometry type row to table
     table.appendChild(geometryTypeRow);
 
@@ -350,7 +395,7 @@ function addCustomGeoItem () {
     table.appendChild(dataFieldsLabelRow);
 
     
-    
+
     // append table to container
     container.appendChild(table);
 
@@ -360,14 +405,16 @@ function addCustomGeoItem () {
     container.style.borderRadius = '10px';
     // bottom margin for container
     container.style.marginBottom = '10px';
-    tableTagsContainer.id = 'myTableTagsContainer-'+document.getElementById('customGeoItems').children.length;
     // turn into tabletags instance
     var tableTags = new TableTags(tableTagsContainer);
-    
+
+
     container.appendChild(tableTagsContainer);
 
     // create button to remove custom geo item
     var removeButton = document.createElement('button');
+    // overwrite deafult "submit" behaviour
+    removeButton.type = 'button';
     removeButton.innerHTML = 'x';
     // place on top right corner of container - NOT of whole page
     removeButton.style.position = 'absolute';
@@ -382,18 +429,22 @@ function addCustomGeoItem () {
     removeButton.style.height = '30px';
 
     removeButton.onclick = function() {
+        // remove from array
+        customGeoItems = customGeoItems.filter(item => item.container !== container);
         container.remove();
     };
     container.appendChild(removeButton);
 
-
+    // add relevant input fields to customGeoItems array
+    customGeoItems.push({
+        container: container,
+        nameInput: nameInput,
+        geometryTypeInput: geometryTypeSelect,
+        customFeatureInput: tableTags
+    });
     // add container to customGeoItems div
     document.getElementById('customGeoItems').appendChild(container);
 
-
-
-
-    
 } 
 
 

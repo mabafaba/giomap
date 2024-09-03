@@ -41,6 +41,9 @@ function show_prompt(title, message, pribtnHide = false, pribtnLabel = "Close", 
         document.getElementById("modal-button-primary").classList.remove("default");
     }
     document.getElementById("modal-alert").style.display = "block";
+
+    // focus on primary button
+    document.getElementById("modal-button-primary").focus();
 }
 
 function prompt_visible() {

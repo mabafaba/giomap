@@ -149,7 +149,7 @@ const mapdrawing = require('./mapdrawing.model');
             leafletView: req.body.leafletView,
             giomapModels: [],
             shareLinkId: req.body.shareLinkId,
-            geometryPropertyFields: req.body.geometryPropertyFields
+            typologies: req.body.typologies
         })
         .then((mapCanvas) => {
             return mapCanvas.save();
