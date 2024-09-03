@@ -24,7 +24,7 @@ if [ -f /run/secrets/jwt_secret ]; then
 fi
 
 # If JWT_SECRET is still not defined, generate a new one
-JWT_SECRET=$(openssl rand -base64 32)
+JWT_SECRET=$(openssl rand -hex 32)
 
 # Output the secret to the volume
 echo "JWT_SECRET=$JWT_SECRET" > /run/secrets/jwt_secret
