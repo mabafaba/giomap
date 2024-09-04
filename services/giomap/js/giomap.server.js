@@ -173,9 +173,21 @@ module.exports = function(app, io){
 
     socket.on("iUploadedGeometriesFromFile!", async json => {
 
+      // verify user
+
+      const verified = await socketVerifyUser(socket);
+
+      // if not verified, send error message to user
+      if (!verified.success) {
+          socket.emit('notAuthorized', verified);
+        return;
+      }
+
       // flatten each feature in the json.layer array with turf.flatten
       // then send each feature to receiveGeometry
       
+
+
       layer_flat = turf.flatten(json.layer);
 
       layer_flat.features.forEach((feature) => {
@@ -195,6 +207,37 @@ module.exports = function(app, io){
       
     }
     )
+
+
+    // handle workshop host instructions
+
+    socket.on('iHighlightedAGeometryForEveryone!', async json => {
+      console.log('iHighlightedAGeometryForEveryone!', json);
+
+      // // verify user
+
+      // const verified = await socketVerifyUser(socket);
+
+      // // if not verified, send error message to user
+      // if (!verified.success) {
+      //     socket.emit('notAuthorized', verified);
+      //   return;
+      // }
+
+      // // is user the map canvas owner?
+      // const mapcanvas = await MapCanvas.findOne({shareLinkId: json.mapcanvasShareLinkId});
+      // if (mapcanvas.createdBy != verified.user.id) {
+      //   socket.emit('notAuthorized', {success: false, message: "Not authorized, must be map canvas owner"});
+      //   return;
+      // }
+
+      // broadcast to mapcanvasShareLinkId room including sender
+      // socket.broadcast.to(json.mapcanvasShareLinkId).emit('someoneHighlightedAGeometryForEveryone!', json);
+      io.to(json.mapcanvasShareLinkId).emit('someoneHighlightedAGeometryForEveryone!', json);
+
+    })
+
+
   })
 }
 

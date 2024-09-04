@@ -138,6 +138,7 @@ const mapdrawing = require('./mapdrawing.model');
     router.route('/create')
     .post(authorizeAndRedirect, async (req, res) => {
         req.body.shareLinkId = crypto.randomBytes(20).toString('hex');
+        console.log('user creating map', req.body.user);
         MapCanvas.create({
             name: req.body.name,
             description: req.body.description,
@@ -145,7 +146,9 @@ const mapdrawing = require('./mapdrawing.model');
             leafletView: req.body.leafletView,
             giomapModels: [],
             shareLinkId: req.body.shareLinkId,
-            typologies: req.body.typologies
+            typologies: req.body.typologies,
+            backgroundMaps: req.body.backgroundMaps,
+            preferredMapLanguage: req.body.preferredMapLanguage
         })
         .then((mapCanvas) => {
             return mapCanvas.save();
@@ -169,6 +172,8 @@ const mapdrawing = require('./mapdrawing.model');
     .get(authorizeAndRedirect, async (req, res, next) => {
         // not standard id, we're using shareLinkId instead (unguessable link)
         MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
+        // populate user details
+        .populate('createdBy', 'username')
         .then((mapCanvas) => {
             // if not found, dont handle this request
             if (!mapCanvas) {
@@ -255,6 +260,8 @@ const mapdrawing = require('./mapdrawing.model');
     .get(authorizeAndRedirect, async (req, res, next) => {
         // not standard id, we're using shareLinkId instead (unguessable link)
         MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
+        // fill in createdBy details
+        .populate('createdBy')
         .then((mapCanvas) => {
             // if not found, dont handle this request
             if (!mapCanvas) {

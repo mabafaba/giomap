@@ -26,6 +26,17 @@ const mapCanvasSchema = new mongoose.Schema({
             required: false
         }
     },
+
+    backgroundMaps: {
+        type: Array,
+        required: false
+    },
+
+    preferredMapLanguage: {
+        type: String,
+        required: false
+    },
+
       // array of any length where each element is an object with at least a name and a type and a value
     typologies:  [
         {

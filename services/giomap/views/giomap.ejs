@@ -80,31 +80,83 @@
                 position: 'bottomright'
             }).addTo(map);
             
-            // add tile layer to map
-            osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map);
+            // add tile layer to map based on mapCanvas.backgroundMaps
             
-            // add google satellite layer
-            googleSatHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{
-                maxZoom: 20,
-                subdomains:['mt0','mt1','mt2','mt3']
-            }).addTo(map);
+            if(!mapCanvas.backgroundMaps || mapCanvas.backgroundMaps.length == 0){
+                // if no background maps, add open street map
+                mapCanvas.backgroundMaps = ['osm', 'googleHybrid', 'googleSatellite'];
+            }
+            var googleMapLanguageUrlSuffix = '';
+            if(mapCanvas.preferredMapLanguage && mapCanvas.preferredMapLanguage != 'user'){
+                googleMapLanguageUrlSuffix = '&hl=' + mapCanvas.preferredMapLanguage;
+                console.log('google map language url suffix', googleMapLanguageUrlSuffix);
+            }
             
-            googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
-                maxZoom: 20,
-                subdomains:['mt0','mt1','mt2','mt3']
-            }).addTo(map);
+            if(mapCanvas.backgroundMaps.includes('osm')){
+                osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+            }
+            
+            if(mapCanvas.backgroundMaps.includes('googleHybrid')){
+                var url = 'http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'+googleMapLanguageUrlSuffix;
+                console.log('google hybrid url', url);
+                googleSatHybrid = L.tileLayer(url,{
+                    maxZoom: 20,
+                    subdomains:['mt0','mt1','mt2','mt3']
+                }).addTo(map);
+            }
+            
+            if(mapCanvas.backgroundMaps.includes('googleSatellite')){
+                console.log('google satellite');
+                var url = 'http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'+googleMapLanguageUrlSuffix;
+                console.log('google satellite url', url);
+                googleSat = L.tileLayer(url,{
+                    maxZoom: 20,
+                    subdomains:['mt0','mt1','mt2','mt3']
+                }).addTo(map);
+            }
+            
+            if(mapCanvas.backgroundMaps.includes('googleMap')){
+                console.log('google map');
+                var url = 'http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'+googleMapLanguageUrlSuffix;
+                console.log('google map url', url);
+                googleMap = L.tileLayer(url,{
+                    maxZoom: 20,
+                    subdomains:['mt0','mt1','mt2','mt3']
+                }).addTo(map);
+            }
             
             
             
             // controls to toggle between tile layers
-            var baseMaps = {
-                "Map": osm,
-                "Satellite": googleSat,
-                "Hybrid": googleSatHybrid
-            };
+            // var baseMaps = {
+            //     "Map": osm,
+            //     "Satellite": googleSat,
+            //     "Hybrid": googleSatHybrid
+            // };
+            var baseMaps = {};
+            
+            if(mapCanvas.backgroundMaps.includes('osm')){
+                baseMaps["OSM Map"] = osm;
+            }
+            
+            
+            if(mapCanvas.backgroundMaps.includes('googleMap')){
+                baseMaps["Google Map"] = googleMap;
+            }
+            
+            if(mapCanvas.backgroundMaps.includes('googleHybrid')){
+                baseMaps["Google Hybrid"] = googleSatHybrid;
+            }
+            
+            if(mapCanvas.backgroundMaps.includes('googleSatellite')){
+                baseMaps["Google Satellite"] = googleSat;
+            }
+            
+            
+            
             // 
             // L.control.layers(baseMaps).addTo(map);
             // layers control bottom left
@@ -163,12 +215,12 @@
             editingLayer = mapio.editingLayer;
             
             addTypologyActionButtons();
-
+            
             function addTypologyActionButtons(){
                 // for each typology, create a button that initates drawing of that typology.
                 // uses typology.geometryType to set drawing mode
                 // uses typology.name to set button text
-
+                
                 // if no typologies
                 if(!typologies || typologies.length == 0){
                     return;
@@ -177,11 +229,11 @@
                 var container = document.getElementById('typologyActionControl');
                 // clear container
                 container.innerHTML = "";
-
-
+                
+                
                 // for each typology
-
-
+                
+                
                 typologies.forEach(function(typology){
                     // create button
                     var button = document.createElement('button');
@@ -198,25 +250,25 @@
                         e.preventDefault();
                         e.stopImmediatePropagation();
                         initiateTypologyDrawing(typology);
-
+                        
                     });
                     // add button to container
                     container.appendChild(button);
                 });
-
+                
                 
             }
-
-
+            
+            
             function initiateTypologyDrawing(typology){
-
+                
                 // get typology geometry type in leafler draw format
                 var drawSettings = {
                     'Point': mapio.controls[0].options.draw["circlemarker"],
                     "Line": mapio.controls[0].options.draw["polyline"],
                     "Polygon": mapio.controls[0].options.draw["polygon"]
                 }
-
+                
                 var drawConstructors = {
                     'Point': L.Draw.CircleMarker,
                     "Line": L.Draw.Polyline,
@@ -224,7 +276,7 @@
                 }
                 
                 new drawConstructors[typology.geometryType](map, drawSettings[typology.geometryType]).enable();
-
+                
                 // when user finishes drawing, log to console. Then remove the event listener,
                 // without removing other event listeners
                 
@@ -235,18 +287,18 @@
                     // safe feature to server now that typology is set
                     mapio.saveLayerToServer(e.layer);
                 }
-                    // add this listener
-                    map.on('draw:created', setTypology);
-              
+                // add this listener
+                map.on('draw:created', setTypology);
+                
                 // when user aborts drawing in any way, remove event listeners
-
+                
                 map.on('draw:drawstop', function(e){
                     map.off('draw:created', setTypology);
                     map.off('draw:drawstop', arguments.callee);
                 });
-
-
-
+                
+                
+                
             }
             
             
@@ -308,6 +360,145 @@
             } 
             
             
+
+            class HighlightForEveryoneInterface {
+                constructor(mapio, buttonParent){
+                    this.mapio = mapio;
+                    this.createButton();
+                    buttonParent.appendChild(this.button);
+                }
+
+                createButton(){
+                    this.button = document.createElement('button');
+                    this.button.innerHTML = 'Discuss Datapoint';
+                    this.button.style.margin = "5px";
+                    this.button.style.boxShadow = "0px 0px 5px 0px rgba(0,0,0,0.75)";
+                    this.button.style.borderRadius = "20px";
+                    this.button.style.backgroundColor = "cyan";
+
+                    this.buttonDefaultStyle();
+                    this.button.addEventListener('click', ()=>{
+                        this.startSelectingLayerToHighlight();
+                    });
+                }
+
+                buttonDefaultStyle(){
+                    this.button.innerHTML = 'Discuss Datapoint';
+                    this.button.style.backgroundColor = "light blue";
+                    if(this.button.querySelector('div')){
+                        this.button.querySelector('div').remove();
+                    }
+                }
+
+                buttonStyleWhilePickingLayerToHighlight(){
+                    this.button.innerHTML = 'click on data point to discuss!';
+                    this.button.style.backgroundColor = "orange";
+                    // add round div with 'x' to cancel highlighting to button content
+                    var cancelHighlightButton = document.createElement('div');
+                    cancelHighlightButton.innerHTML = 'x';
+                    cancelHighlightButton.style.borderRadius = "20px";
+                    cancelHighlightButton.style.backgroundColor = "red";
+                    cancelHighlightButton.style.color = "white";
+                    cancelHighlightButton.style.width = "20px";
+                    cancelHighlightButton.style.height = "20px";
+                    cancelHighlightButton.style.display = "flex";
+                    cancelHighlightButton.style.alignItems = "center";
+                    cancelHighlightButton.style.justifyContent = "center";
+                    cancelHighlightButton.style.position = "relative";
+                    cancelHighlightButton.style.right = "5px";
+                    cancelHighlightButton.style.top = "5px";
+                    cancelHighlightButton.style.cursor = "pointer";
+                    cancelHighlightButton.style.display = "inline";
+                    // this.button.appendChild(cancelHighlightButton);
+                }
+
+                highlightHandler (e) {
+                            console.log('highlighting layer', e.target);
+                            // mapio.highlightFeature(e.target);
+                            mapio.highlightLayerForEveryone(e.target);
+                            this.stopSelectingLayerToHighlight();
+                        };
+
+                startSelectingLayerToHighlight(){
+                    // change button style:
+                    console.log('this', this);
+                    this.buttonStyleWhilePickingLayerToHighlight();
+
+                    // don't open any popups until selected
+                    this.mapio.disableEditing();
+
+          
+                    
+                    this.mapio.editingLayer.eachLayer((layer)=>{
+                        layer.on('click', this.highlightHandler.bind(this));
+                        console.log('event listeners', layer._events);
+                    });
+
+                    // stop selecting layer to highlight when user clicks anywhere on map that is not a layer
+                    map.on('click', this.stopSelectingLayerToHighlight.bind(this));
+
+                }
+
+                stopSelectingLayerToHighlight(){
+                    // reset button style
+                    this.buttonDefaultStyle();
+                    this.mapio.editingLayer.eachLayer((layer)=>{
+                        // list event listeners
+                        // console.log('event listeners', layer._events);
+                        layer.off('click');
+                        // reinstate popup
+
+                    });
+                    this.mapio.enableEditing();
+
+                    // remove map click event listener
+                    map.off('click', this.stopSelectingLayerToHighlight);
+
+
+                    
+                   
+                }
+
+            
+            }
+            
+            function workshopHostPanel (){
+                // is the user the map host?
+                // get user
+                
+                fetch('/giomap/user/me').then(response => response.json()).then(
+                user => {
+                    console.log('user', user);
+                    console.log('mapCanvas', mapCanvas);
+                    if(user.username == mapCanvas.createdBy.username){
+                        // create host panel div at top center of screen at 80% width, content should be centered and evenly spaced and wrap if too full for width
+                        var hostPanel = document.createElement('div');
+                        hostPanel.id = "hostPanel";
+                        hostPanel.style.position = "fixed";
+                        hostPanel.style.top = "90px";
+                        hostPanel.style.left = "50%";
+                        hostPanel.style.transform = "translateX(-50%)";
+                        hostPanel.style.display = "flex";
+                        hostPanel.style.flexWrap = "wrap";
+                        hostPanel.style.justifyContent = "space-evenly";
+                        hostPanel.style.flexDirection = "row";
+                        hostPanel.style.flexWrap = "wrap";
+                        hostPanel.style.zIndex = "3000";
+                        hostPanel.style.maxWidth = "80%";
+                        // add to body
+                        document.body.appendChild(hostPanel);
+
+                        new HighlightForEveryoneInterface(mapio, hostPanel);
+                    }
+                });
+                
+                
+                
+            }
+            
+
+            
+            workshopHostPanel();
             
             
             function addEditPropertiesPopupToLayer (layer){
@@ -364,9 +555,9 @@
                     // set typology based on existing data
                     if(feature.properties.typology && feature.properties.typology.name && feature.properties.typology.name !== ""){
                         typologySelector.update(
-                            typology = feature.properties.typology,
-                            data = feature.properties.custom ? feature.properties.custom : {}
-
+                        typology = feature.properties.typology,
+                        data = feature.properties.custom ? feature.properties.custom : {}
+                        
                         );
                     }
                     
@@ -435,11 +626,11 @@
                 flex-direction: row;
                 flex-wrap: wrap;
                 z-index: 1000;
-
                 
-
+                
+                
             }
-
+            
             .leaflet-tile {
                 /* // filter 50% brightness and 15 deg hu */
                 filter: brightness(50%) hue-rotate(-45deg);
@@ -497,303 +688,303 @@
             </style>
             
             
-
-
-<script>
-    
-    
-    
-    
-    
-    class TypologySelector {
-        constructor(typologies, selectedTypology, onsubmit, data) {
-            this.typologies = typologies;
-            this.html = this.buildHtml()
-            this.typologyPropertiesForm = new TypologyPropertiesForm(selectedTypology, data, onsubmit);
-
-            // if only one option exists, set typology
-            if(this.typologies && this.typologies.length==1){
-                this.update(typologies[0]);
-            }
-
-            // update form when typology changes
-            this.html.addEventListener('change', (e) => {
-                // find typology 
-                var typology = this.typologies.find(t => t.name === e.target.value);
-                this.update(typology);
-            });
-        }
-
-        get data(){
-            return this.typologyPropertiesForm.data;
-        }
-        
-        update(typology, data){
-            // check if typology exists in typologies
-            if(typology){
-            var typologyFound = this.typologies.find(t => t.name === typology.name);
-
-            if(!typologyFound){
-                console.error("Typology not found in typologies", typology);
-                return;
-            }
-                    
-                // set input field value
-            this.html.value = typology.name;
-            }
-            // update form fields and data
-            this.typologyPropertiesForm.update(typology, data)
-
-        }
-        
-        buildHtml() {
-            var typologySelector = document.createElement('select');
-            typologySelector.id = "typologySelector";
-            typologySelector.name = "typologySelector";
-            typologySelector.style.width = "100%";
-            typologySelector.style.marginBottom = "10px";
-            // larger font size
-            typologySelector.style.fontSize = '1.3em';
-            typologySelector.style.fontWeight = 'bold';
-            typologySelector.style.color = 'white';
-
-
-
-            // empty default option
             
-            // if more than one type
-            if(this.typologies.length > 1){
-            var emptyOption = document.createElement('option');
-            emptyOption.hidden = true;
-            emptyOption.disabled = true;
-            emptyOption.selected = true;
-            emptyOption.value = "";
-            emptyOption.innerHTML = "select type";
-
-            typologySelector.appendChild(emptyOption);
-            }
-            // one option per typology
-            this.typologies.forEach(function(typology) {
-                var option = document.createElement('option');
-                option.value = typology.name;
-                option.innerHTML = typology.name;
-                typologySelector.appendChild(option);
-            });
-
-            return typologySelector;
-        }
-        
-        selectedTypologyName() {
-            return this.html.value;
-        }
-        
-        selectedTypology() {
-            return this.typologies.find(typology => typology.name === this.selectedTypologyName());
-        }
-        
-
-    }
-    
-    
-    
-    
-    class TypologyPropertiesForm {
-        constructor(typology, data, onsubmit) {
             
-            this.typologyPropertiesFormGroup = null;
-            this.form = null;
-            this.onsubmit = onsubmit;
-            this.createFormStructure();
-            
-            if(typology){
-                this.typology = typology;
-            }
-            
-            if(typology && data){
-                this.updateData(data);
-            }
-            
-            if(!typology && data){
-                throw new Error("can't fill form data without typology");
-            }
-            
-        }
-        
-        createFormStructure() {
-            this.form = document.createElement('form');
-            this.form.id = "popupForm";
-            this.form.className = "popupForm";
-            this.form.addEventListener("submit", this.onsubmit);
-            this.form.addEventListener("cancel", this.onsubmit);
-            
-            this.typologyPropertiesFormGroup = document.createElement('div');
-            this.typologyPropertiesFormGroup.className = "form-group-user-defined-properties";
-            this.typologyPropertiesFormGroup.id = "typologyPropertiesFormGroup";
-            
-            this.form.appendChild(this.typologyPropertiesFormGroup);
-            
-            var saveButton = document.createElement('button');
-            saveButton.type = "submit";
-            saveButton.name = "action";
-            saveButton.value = "save";
-            saveButton.innerHTML = "Save";
-            saveButton.style.marginRight = "5px";
-            this.form.appendChild(saveButton);
-            
-            var cancelButton = document.createElement('button');
-            cancelButton.type = "submit";
-            cancelButton.name = "action";
-            cancelButton.value = "cancel";
-            cancelButton.innerHTML = "Cancel";
-            this.form.appendChild(cancelButton);
-        }
-        
-        update (typology, data){
-            if(typology){
-            this.updateTypology(typology);
-            }
-            if(data){
-            this.updateData(data);
-            }
-        }
-        updateTypology(typology) {
-            if(!typology){
-                console.error("can't update form without typology");
-                return;
-            }
-            this.typology = typology;
-            this.updatePropertyInputFields(typology);
-        }
-        
-        updatePropertyInputFields(typology) {
-            this.typologyPropertiesFormGroup.innerHTML = "";
-            if(!typology){
-                this.typology = null;
-                return;
-            }
-            
-            typology.properties.forEach((field) => {
-                var fieldLabel = document.createElement('label');
-                fieldLabel.for = field.name;
-                fieldLabel.innerHTML = field.name;
-                this.typologyPropertiesFormGroup.appendChild(fieldLabel);
-                this.typologyPropertiesFormGroup.appendChild(document.createElement('br'));
+            <script>
                 
-                if (field.type === 'text') {
-                    var fieldInput = document.createElement('input');
-                    fieldInput.id = field.name;
-                    fieldInput.name = field.name;
-                    fieldInput.placeholder = field.name;
-                    fieldInput.style.width = "100%";
-                    fieldInput.style.marginBottom = "10px";
-                    fieldInput.rows = 1;
-                    fieldInput.cols = 20;
-                    this.typologyPropertiesFormGroup.appendChild(fieldInput);
+                
+                
+                
+                
+                class TypologySelector {
+                    constructor(typologies, selectedTypology, onsubmit, data) {
+                        this.typologies = typologies;
+                        this.html = this.buildHtml()
+                        this.typologyPropertiesForm = new TypologyPropertiesForm(selectedTypology, data, onsubmit);
+                        
+                        // if only one option exists, set typology
+                        if(this.typologies && this.typologies.length==1){
+                            this.update(typologies[0]);
+                        }
+                        
+                        // update form when typology changes
+                        this.html.addEventListener('change', (e) => {
+                            // find typology 
+                            var typology = this.typologies.find(t => t.name === e.target.value);
+                            this.update(typology);
+                        });
+                    }
+                    
+                    get data(){
+                        return this.typologyPropertiesForm.data;
+                    }
+                    
+                    update(typology, data){
+                        // check if typology exists in typologies
+                        if(typology){
+                            var typologyFound = this.typologies.find(t => t.name === typology.name);
+                            
+                            if(!typologyFound){
+                                console.error("Typology not found in typologies", typology);
+                                return;
+                            }
+                            
+                            // set input field value
+                            this.html.value = typology.name;
+                        }
+                        // update form fields and data
+                        this.typologyPropertiesForm.update(typology, data)
+                        
+                    }
+                    
+                    buildHtml() {
+                        var typologySelector = document.createElement('select');
+                        typologySelector.id = "typologySelector";
+                        typologySelector.name = "typologySelector";
+                        typologySelector.style.width = "100%";
+                        typologySelector.style.marginBottom = "10px";
+                        // larger font size
+                        typologySelector.style.fontSize = '1.3em';
+                        typologySelector.style.fontWeight = 'bold';
+                        typologySelector.style.color = 'white';
+                        
+                        
+                        
+                        // empty default option
+                        
+                        // if more than one type
+                        if(this.typologies.length > 1){
+                            var emptyOption = document.createElement('option');
+                            emptyOption.hidden = true;
+                            emptyOption.disabled = true;
+                            emptyOption.selected = true;
+                            emptyOption.value = "";
+                            emptyOption.innerHTML = "select type";
+                            
+                            typologySelector.appendChild(emptyOption);
+                        }
+                        // one option per typology
+                        this.typologies.forEach(function(typology) {
+                            var option = document.createElement('option');
+                            option.value = typology.name;
+                            option.innerHTML = typology.name;
+                            typologySelector.appendChild(option);
+                        });
+                        
+                        return typologySelector;
+                    }
+                    
+                    selectedTypologyName() {
+                        return this.html.value;
+                    }
+                    
+                    selectedTypology() {
+                        return this.typologies.find(typology => typology.name === this.selectedTypologyName());
+                    }
+                    
+                    
                 }
                 
-                if (field.type === 'categorical') {
-                    var fieldSelect = document.createElement('select');
-                    fieldSelect.id = field.name;
-                    fieldSelect.name = field.name;
-                    fieldSelect.innerHTML = field.name;
-                    fieldSelect.style.width = "100%";
-                    fieldSelect.style.marginBottom = "10px";
+                
+                
+                
+                class TypologyPropertiesForm {
+                    constructor(typology, data, onsubmit) {
+                        
+                        this.typologyPropertiesFormGroup = null;
+                        this.form = null;
+                        this.onsubmit = onsubmit;
+                        this.createFormStructure();
+                        
+                        if(typology){
+                            this.typology = typology;
+                        }
+                        
+                        if(typology && data){
+                            this.updateData(data);
+                        }
+                        
+                        if(!typology && data){
+                            throw new Error("can't fill form data without typology");
+                        }
+                        
+                    }
                     
-                    var emptyOption = document.createElement('option');
-                    emptyOption.hidden = true;
-                    emptyOption.disabled = true;
-                    emptyOption.selected = true;
-                    emptyOption.value = "";
-                    emptyOption.innerHTML = "select";
-                    fieldSelect.appendChild(emptyOption);
+                    createFormStructure() {
+                        this.form = document.createElement('form');
+                        this.form.id = "popupForm";
+                        this.form.className = "popupForm";
+                        this.form.addEventListener("submit", this.onsubmit);
+                        this.form.addEventListener("cancel", this.onsubmit);
+                        
+                        this.typologyPropertiesFormGroup = document.createElement('div');
+                        this.typologyPropertiesFormGroup.className = "form-group-user-defined-properties";
+                        this.typologyPropertiesFormGroup.id = "typologyPropertiesFormGroup";
+                        
+                        this.form.appendChild(this.typologyPropertiesFormGroup);
+                        
+                        var saveButton = document.createElement('button');
+                        saveButton.type = "submit";
+                        saveButton.name = "action";
+                        saveButton.value = "save";
+                        saveButton.innerHTML = "Save";
+                        saveButton.style.marginRight = "5px";
+                        this.form.appendChild(saveButton);
+                        
+                        var cancelButton = document.createElement('button');
+                        cancelButton.type = "submit";
+                        cancelButton.name = "action";
+                        cancelButton.value = "cancel";
+                        cancelButton.innerHTML = "Cancel";
+                        this.form.appendChild(cancelButton);
+                    }
                     
-                    field.categoricalValues.forEach((value) => {
-                        var option = document.createElement('option');
-                        option.value = value;
-                        option.innerHTML = value;
-                        fieldSelect.appendChild(option);
-                    });
+                    update (typology, data){
+                        if(typology){
+                            this.updateTypology(typology);
+                        }
+                        if(data){
+                            this.updateData(data);
+                        }
+                    }
+                    updateTypology(typology) {
+                        if(!typology){
+                            console.error("can't update form without typology");
+                            return;
+                        }
+                        this.typology = typology;
+                        this.updatePropertyInputFields(typology);
+                    }
                     
-                    this.typologyPropertiesFormGroup.appendChild(fieldSelect);
+                    updatePropertyInputFields(typology) {
+                        this.typologyPropertiesFormGroup.innerHTML = "";
+                        if(!typology){
+                            this.typology = null;
+                            return;
+                        }
+                        
+                        typology.properties.forEach((field) => {
+                            var fieldLabel = document.createElement('label');
+                            fieldLabel.for = field.name;
+                            fieldLabel.innerHTML = field.name;
+                            this.typologyPropertiesFormGroup.appendChild(fieldLabel);
+                            this.typologyPropertiesFormGroup.appendChild(document.createElement('br'));
+                            
+                            if (field.type === 'text') {
+                                var fieldInput = document.createElement('input');
+                                fieldInput.id = field.name;
+                                fieldInput.name = field.name;
+                                fieldInput.placeholder = field.name;
+                                fieldInput.style.width = "100%";
+                                fieldInput.style.marginBottom = "10px";
+                                fieldInput.rows = 1;
+                                fieldInput.cols = 20;
+                                this.typologyPropertiesFormGroup.appendChild(fieldInput);
+                            }
+                            
+                            if (field.type === 'categorical') {
+                                var fieldSelect = document.createElement('select');
+                                fieldSelect.id = field.name;
+                                fieldSelect.name = field.name;
+                                fieldSelect.innerHTML = field.name;
+                                fieldSelect.style.width = "100%";
+                                fieldSelect.style.marginBottom = "10px";
+                                
+                                var emptyOption = document.createElement('option');
+                                emptyOption.hidden = true;
+                                emptyOption.disabled = true;
+                                emptyOption.selected = true;
+                                emptyOption.value = "";
+                                emptyOption.innerHTML = "select";
+                                fieldSelect.appendChild(emptyOption);
+                                
+                                field.categoricalValues.forEach((value) => {
+                                    var option = document.createElement('option');
+                                    option.value = value;
+                                    option.innerHTML = value;
+                                    fieldSelect.appendChild(option);
+                                });
+                                
+                                this.typologyPropertiesFormGroup.appendChild(fieldSelect);
+                            }
+                            
+                            this.typologyPropertiesFormGroup.appendChild(document.createElement('br'));
+                        });
+                    }
+                    
+                    setPropertyValue(field, value) {
+                        if(!this.typology){
+                            console.error("can't set property value without typology");
+                            return;
+                        }
+                        // warn if unknown fields are present
+                        if (!this.typology.properties.find((f) => f.name === field.name)) {
+                            console.warn(`Unknown field ${field.name} in data, value:`, value);
+                        }
+                        if (field.type === 'text') {
+                            var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
+                            input.value = value;
+                        }
+                        if (field.type === 'categorical') {
+                            var select = this.typologyPropertiesFormGroup.querySelector(`select[name="${field.name}"]`);
+                            select.value = value;
+                        }
+                    }
+                    
+                    updateData(data) {
+                        // warn if unknown fields are present
+                        
+                        if(!data){
+                            console.warn("no data to update form with");
+                            return;
+                        }
+                        
+                        Object.keys(data).forEach((key) => {
+                            if (!this.typology.properties.find((field) => field.name === key)) {
+                                console.warn(`Unknown field ${key} in data, value:`, data[key]);
+                            }
+                        });
+                        
+                        
+                        
+                        if(!this.typology){
+                            console.error("can't set property value without typology");
+                            return;
+                        }
+                        
+                        
+                        this.typology.properties.forEach((field) => {
+                            if (data[field.name]) {
+                                this.setPropertyValue(field, data[field.name]);
+                            } else {
+                                this.setPropertyValue(field, "");
+                            }
+                        });
+                    }
+                    get data() {
+                        
+                        // error if no typology
+                        if(!this.typology){
+                            // warn
+                            console.warn("no typology set, returning empty object");
+                            // return empty object
+                            return {};
+                        }
+                        
+                        var data = {};
+                        this.typology.properties.forEach((field) => {
+                            if (field.type === 'text') {
+                                var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
+                                data[field.name] = input.value;
+                            }
+                            if (field.type === 'categorical') {
+                                var select = this.typologyPropertiesFormGroup.querySelector(`select[name="${field.name}"]`);
+                                data[field.name] = select.value;
+                            }
+                        });
+                        return data;
+                    }
                 }
                 
-                this.typologyPropertiesFormGroup.appendChild(document.createElement('br'));
-            });
-        }
-        
-        setPropertyValue(field, value) {
-            if(!this.typology){
-                console.error("can't set property value without typology");
-                return;
-            }
-            // warn if unknown fields are present
-            if (!this.typology.properties.find((f) => f.name === field.name)) {
-                console.warn(`Unknown field ${field.name} in data, value:`, value);
-            }
-            if (field.type === 'text') {
-                var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
-                input.value = value;
-            }
-            if (field.type === 'categorical') {
-                var select = this.typologyPropertiesFormGroup.querySelector(`select[name="${field.name}"]`);
-                select.value = value;
-            }
-        }
-        
-        updateData(data) {
-            // warn if unknown fields are present
-
-            if(!data){
-                console.warn("no data to update form with");
-                return;
-            }
-            
-            Object.keys(data).forEach((key) => {
-                if (!this.typology.properties.find((field) => field.name === key)) {
-                    console.warn(`Unknown field ${key} in data, value:`, data[key]);
-                }
-            });
-
-
-            
-            if(!this.typology){
-                console.error("can't set property value without typology");
-                return;
-            }
-            
-
-            this.typology.properties.forEach((field) => {
-                if (data[field.name]) {
-                    this.setPropertyValue(field, data[field.name]);
-                } else {
-                    this.setPropertyValue(field, "");
-                }
-            });
-        }
-        get data() {
-            
-            // error if no typology
-            if(!this.typology){
-                // warn
-                console.warn("no typology set, returning empty object");
-                // return empty object
-                return {};
-            }
-            
-            var data = {};
-            this.typology.properties.forEach((field) => {
-                if (field.type === 'text') {
-                    var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
-                    data[field.name] = input.value;
-                }
-                if (field.type === 'categorical') {
-                    var select = this.typologyPropertiesFormGroup.querySelector(`select[name="${field.name}"]`);
-                    data[field.name] = select.value;
-                }
-            });
-            return data;
-        }
-    }
-    
-    
-</script>
+                
+            </script>

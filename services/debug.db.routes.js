@@ -12,7 +12,7 @@ console.log('\x1b[31m%s\x1b[0m', 'WARNING: VULNERABLE DEBUG ROUTES ACTIVE! - ANY
 console.log('\x1b[33m%s\x1b[0m', 'Remove server/debug.db.routes from server.js before hosting production.');
 
 module.exports = function(app){
-    app.get('/debug/dropusers', function(req, res){
+    app.get('/debug/delte/users', function(req, res){
         db.User.collection.drop();
         res.send("users dropped!")
     });
@@ -26,7 +26,7 @@ module.exports = function(app){
     });
     
     // delete all giomap entries
-    app.get('/debug/dropgiomap', async function(req, res){
+    app.get('/debug/delete/maps', async function(req, res){
         await mapdrawing.collection.drop();
         await MapCanvas.collection.drop();
         res.send("giomap entries dropped!")
@@ -35,7 +35,7 @@ module.exports = function(app){
 
 
     // delete specific map
-    app.get('/debug/deletemap/:id', async function(req, res){
+    app.get('/debug/delete/map/:id', async function(req, res){
         await mapdrawing.findByIdAndDelete(req.params.id);
         res.send("giomap entry dropped!")
     });
