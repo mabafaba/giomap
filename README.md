@@ -147,11 +147,10 @@ sudo systemctl reload nginx
 Best way to start is to open an issue to discuss the feature you would like to add / change!
 Feel free to contact me directly.
 
+
+
 ## TO DO
-
-- free text if no options selected on property field
 - edit map data properties
-
 - map creator can predefine different standard map entries
 
 - Popup not working reliably on circle / rectangle
@@ -164,3 +163,13 @@ Feel free to contact me directly.
 - get rid of Alpine.js and replace with vanilla JS / jQuery. Frontend frameworks are overrated.
 - get rid of ejs templating enginge. Use plain HTML. // see https://dev.to/andreygermanov/modular-html-19o6
 - use socket.io only to alert clients of changes. Use REST API for everything else.
+
+
+## version history
+
+prototype 2 
+
+- user defined map features
+- select basemaps
+- base map langauge
+- workshop host panel: focus on feature

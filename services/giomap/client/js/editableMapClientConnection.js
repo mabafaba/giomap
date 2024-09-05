@@ -250,8 +250,6 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
         listenForWorkshopHostInstructions: function () {
             this.socket.on('someoneHighlightedAGeometryForEveryone!', (json)=>{
 
-                console.log('someoneHighlightedAGeometryForEveryone!', json);
-
                 // close all popups, highlight feature, fly to feature
                 uuid = json.uuid;
 
@@ -265,6 +263,13 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
 
 
             });
+
+            this.socket.on('someoneBringsEveryoneToTheirView!', (json)=>{
+                console.log('someoneBringsEveryoneToTheirView!', json);
+                this.map.setView(json.center, json.zoom);
+            })
+
+
         },
 
         disableEditing: function () {
@@ -545,14 +550,18 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 // make all other features gray
                 this.editingLayer.eachLayer(function (l) {
                     console.log('setting color to gray');
+                    if(l.setStyle){
                     l.setStyle({color: '#808080'});
+                    }
 
                 });
                 // make selected feature white
+                if(layer.setStyle){
                 layer.setStyle({
                     weight: 5,
                     color: '#FF0000'
                 });
+                }
                 layer.feature.properties.highlighted = true;
 
                 // disable popup event on this layer
@@ -573,8 +582,10 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 // return all features to original color and weight
                 this.editingLayer.eachLayer(function (l) {
                     console.log('setting color to original');
+                    if(l.setStyle){
                     l.setStyle({color: l.feature.properties.color});
                     l.setStyle({weight: l.feature.properties.weight ? l.feature.properties.weight : 2});
+                    }
                     // remove highlighted property (dont set to false, get rid)
                     delete l.feature.properties.highlighted;
                 });
@@ -592,12 +603,37 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 if(layer.getBounds){
                     this.map.flyToBounds(layer.getBounds());
                 }else{
-                    // fly to point
-                    this.map.flyTo(layer.getLatLng());
+                    // fly to point, zooming in one level
+
+                    const newZoom = this.map.getZoom() + 1;
+                    this.map.flyTo(layer.getLatLng(), newZoom);
                     
                 }
       
             },
+
+            bringEveryoneToMyView: function () {
+
+                function getMapPerspective(map) {
+                    const center = map.getCenter();
+                    return {
+                      center: [center.lat, center.lng],
+                      zoom: map.getZoom()
+                    };
+                  }
+
+
+                // fly to all geometries
+                console.log('bringEveryoneToMyView');
+                var mapView = getMapPerspective(this.map);
+                console.log('iBringEveryoneToMyView!', mapView);
+                this.socket.emit('iBringEveryoneToMyView!', {
+                    "mapcanvasShareLinkId": this.mapCanvasShareLinkId,
+                    "mapView": mapView
+                });
+                }
+                
+            
             
             
         }

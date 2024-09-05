@@ -360,6 +360,24 @@
             } 
             
             
+            class BringEveryoneHereInterface {
+                constructor(mapio, buttonParent){
+                    this.mapio = mapio;
+                    this.button = document.createElement('button');
+                    buttonParent.appendChild(this.button);
+                    this.button.style.boxShadow = "0px 0px 5px 0px rgba(0,0,0,0.75)";
+                    this.button.style.borderRadius = "20px";
+                    this.button.style.backgroundColor = "cyan";
+                    this.button.style.margin = "5px";
+                    this.button.innerHTML = 'Set this view for everyone';
+
+                    this.button.onclick = this.mapio.bringEveryoneToMyView.bind(this.mapio);
+                }
+
+
+
+
+            }
 
             class HighlightForEveryoneInterface {
                 constructor(mapio, buttonParent){
@@ -489,6 +507,8 @@
                         document.body.appendChild(hostPanel);
 
                         new HighlightForEveryoneInterface(mapio, hostPanel);
+                        new BringEveryoneHereInterface(mapio, hostPanel);
+
                     }
                 });
                 

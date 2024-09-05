@@ -216,24 +216,31 @@ module.exports = function(app, io){
 
       // // verify user
 
-      // const verified = await socketVerifyUser(socket);
+      const verified = await socketVerifyUser(socket);
 
-      // // if not verified, send error message to user
-      // if (!verified.success) {
-      //     socket.emit('notAuthorized', verified);
-      //   return;
-      // }
+      // if not verified, send error message to user
+      if (!verified.success) {
+          socket.emit('notAuthorized', verified);
+        return;
+      }
 
-      // // is user the map canvas owner?
-      // const mapcanvas = await MapCanvas.findOne({shareLinkId: json.mapcanvasShareLinkId});
-      // if (mapcanvas.createdBy != verified.user.id) {
-      //   socket.emit('notAuthorized', {success: false, message: "Not authorized, must be map canvas owner"});
-      //   return;
-      // }
+      // is user the map canvas owner?
+      const mapcanvas = await MapCanvas.findOne({shareLinkId: json.mapcanvasShareLinkId});
+      if (mapcanvas.createdBy != verified.user.id) {
+        socket.emit('notAuthorized', {success: false, message: "Not authorized, must be map canvas owner"});
+        return;
+      }
 
       // broadcast to mapcanvasShareLinkId room including sender
       // socket.broadcast.to(json.mapcanvasShareLinkId).emit('someoneHighlightedAGeometryForEveryone!', json);
       io.to(json.mapcanvasShareLinkId).emit('someoneHighlightedAGeometryForEveryone!', json);
+
+    })
+
+    socket.on('iBringEveryoneToMyView!', async json => {
+      console.log('iBringEveryoneToMyView!', json);
+
+      io.to(json.mapcanvasShareLinkId).emit('someoneBringsEveryoneToTheirView!', json.mapView);
 
     })
 
