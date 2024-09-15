@@ -8,628 +8,494 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
+    
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura-vader.css" media="screen" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <!-- include alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
-    <!-- table tags -->
-    <script src="./js/tabletags.js"></script>
-
-
+    <!-- components -->
+    <script src="./js/components/tabletags.js"></script>
+    <script src="./js/components/languagePicker.js"></script>
+    <script src="./js/components/mapViewPicker.js"></script>
+    
+    
     <!-- <div id="cover" style="background-color:aquamarine;position:fixed;width:100%;height:100%;z-index:3000;left:0;top:0"></div> -->
     <!-- <button id="gotome" style="position:fixed;left:50%;top:50%;z-index:3001;" onclick="goToUser()">Go to me!</
         > -->
-    <!-- post data div -->
-</head>
-<body>
-    
-
-    <!-- form to create a map -->
-    <!-- text fields for name and descripion -->
-    <!-- as well as a leaflet map that is used to define the maps initial view -->
-    <div id="createMapContainer">
-    <h1>Create a new Map</h1>
-
-    <p>
-        <form id="createMapForm">
-            <label for="name">Name</label><br>
-            <textarea id="name" name="name" placeholder="Enter Map Name" rows="1"></textarea><br>
-            <br>
-            <label for="description">Description</label><br>
-            <p>The description is displayed as an info text when opening the map.</p>
-            <textarea id="description" name="description" placeholder="Enter description" rows="4" cols="20"></textarea><br>
-            <br>
-            <label for="customGeoItems">Geometry Typologies</label><br>    
-            <p>Define what different kind of elements users can add to the map.
-                For each type, you can define a name, what kind of geometry it should be, and a list of possible values.</p>
-                <p>If you add options to a data field (type in the field and hit enter), the field will be a dropdown list. If you leave the 'options' field empty, it becomes a free text field. </p>
-            <div id="customGeoItems"></div>
-            <!-- button to add custom geo items -->
-            <button type="button" onclick="addCustomGeoItem()">+</button>
-            
-            <br>
-            <br>
-            <br>
-            <label for="leafletMap">Initial Map View</label><br>
-            <div id="leafletMap"></div>
-            <div id="filler" style="height: 400px; width: 50%; float: left;"></div>
-
-            <br>
-
-            <!-- check boxes: which background maps are available on the map? -->
-             <!-- standard Open Street Maps  -->
-              <!-- Google Hybrid Satellite Maps -->
-            <!-- google Satellite Image -->
-             <!-- Google Topographic Maps -->
-            
-            <br>
-            <label for="backgroundMaps">Background Maps</label>
-            <br>
-            <input type="checkbox" id="osm" name="osm" value="osm" checked> <label for="osm" style="display:inline">Open Street Maps</label><br>
-            <input type="checkbox" id="googleHybrid" name="googleHybrid" value="googleHybrid" checked> <label for="googleHybrid" style="display:inline">Google Hybrid Satellite Image</label><br>
-            <input type="checkbox" id="googleSatellite" name="googleSatellite" value="googleSatellite" checked> <label for="googleSatellite" style="display:inline">Google Satellite Image</label><br>
-            <input type="checkbox" id="googleMap" name="googleMap" value="googleMap"> <label for="googleMap" style="display:inline">Standard Google Map</label><br>
-            <br>
-            <!-- table with two columns for language picker -->
-
-            <table style="width: 100%">
-                <tr>
-                    <td>Google Background Map Language</td>
-                    <td>
-                        <div id="googleMapLanguagePicker"></div>
-                    </td>
-                </tr>
-            </table>
-
-
-
- 
- <script>
-    //  var container = document.getElementById("customGeoItems").appendChild(div);
-    //  var tableTags = new TableTags(container,
-
-    // //  initialRows = [{name:'test',values: ['some', 'tags']}]
-    // // as below name, description and type are added as rows
-    // initialRows = [{name:'name',values: []},
-    //                {name:'description',values: []},
-    //                {name:'type',values: ['select', 'categories']}]
-
-    //  );
- </script>
- 
-            <button type="submit" name="action" value="save">Create Map</button>
-            <button type="submit" class='cancelbutton' name="action" value="cancel">Cancel</button>
-        </form>
-    </p>
-</div>
-
-    <!-- navigation -->
-    <%- include('./navigation', {page:'createmap'}) %>
-
-</body>
-
-<style>
-
-    /* some top padding for form container */
-    #createMapContainer {
-        padding-top: 50px;
-    }
-
-    .cancelbutton {
-        background-color: #f44336;
-        color: white;
-      }
-
-    /* style for leaflet map */
-    #leafletMap {
-        height: 400px;
-        width: 50%;
-        /* align right */
-        float: right;
-
-
-    }
-
-
-/* set tagify placeholder color --placeholder-color */
-
-.tagify__input {
-    --placeholder-color: #606060;
-}
-
-/* /<td class="featureName"><input placeholder="data field name" style="height: 2.6em;"></td> */
-/* style td of class featerName and featureValues  to be each 50% of table width*/
-.featureName, .featureValues {
-    width: 50%;
-}
-
-/* style tagify input to be full width of parent */
-.tagify__input {
-    width: 100%;
-}
-
-/* style input element inside featerName to be full width of parent */
-.featureName input {
-    min-width: 99%;
-    margin-bottom: 0px;
-}
-
-.tagifyInputField {
-  width: 100%;
-}
-
-td {
-    border-bottom-style: none
-}
-
-
-
-</style>
-
-
-<script>
-
-// init leaflet map
-
-var map = L.map('leafletMap').setView([13.121387978520586, 14.419215391995849], 2);
-// add osm layer
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/">OpenStreetMap</a>'
-}).addTo(map);
-
-// overwrite default form submit behaviour
-
-document.getElementById('createMapForm').addEventListener('submit', function(event) {
-    // prevent default behaviour
-    event.preventDefault();
-    // check which button was pressed
-    const action = event.submitter.value;
-    // call corresponding function
-    if (action === 'save') {
-        saveMap(event, customGeoItems);
-    } else if (action === 'cancel') {
-        cancelMap(event);
-    }
-});
-
-
-function saveMap (event, customGeoItems) {
-    event.preventDefault();
-    // get form data
-    const formData = new FormData(event.target);
-    // get map name
-    const name = formData.get('name');
-    // get map description
-    const description = formData.get('description');
-    // get map view
-    const mapView = getMapPerspective();
-
-    // geometry property fields
-    var typologies = [];
-    // get all custom geo items
-    // iterate over all custom geo items
-
-    for (var i = 0; i < customGeoItems.length; i++) {
-        // get name input string
-        var customGeometryName = customGeoItems[i].nameInput.value;
-        // get geometry type. use select items id to get selected value
-        var geometryType = customGeoItems[i].geometryTypeInput.value;
-        // custom feature fields
-        var customFeatureFields = customGeoItems[i].customFeatureInput.data;
-        // remove empty fields
-        customFeatureFields = customFeatureFields.filter(field => {
-            return field.name !== '';
-        });
-    
-        customFeatureFields.map(field => {
-        // if theres no values, set type to text.
-        //Otherwise set type to categorical and set categorical values
-        if(field.values.length === 0) {
-            field.type = 'text';
-        } else {
-        field.type = 'categorical';
-        field.categoricalValues = field.values;
-        }
-
-
-    delete field.values;
-       return field;
-    });
-
-        // add to geometry property fields
-        typologies.push({
-            name: customGeometryName,
-            geometryType: geometryType,
-            properties: customFeatureFields
-        });
-
-
-    }
-    // array with names of selected background maps
-    var backgroundMaps = [];
-    ['osm', 'googleHybrid', 'googleSatellite', 'googleMap'].forEach(map => {
-        if(document.getElementById(map).checked) {
-            backgroundMaps.push(map);
-        }
-    });
-    
-    const preferredMapLanguage = document.getElementById('googleMapLanguage').value;
-    
-
-
-    // validate inputs
-
-    var issues = [];
-
-    if(!name | name ==''){
-        issues.push('Map must have a name')
-    }
-
-    if(typologies.length<1){
-        issues.push('Map must have at least one Typology defined');
-    }
-
-    typologies.forEach(typology => {
-        if(!typology.name || typology.name === ""){
-            issues.push('All Typologies must have a name');
-        }
-        if(typology.properties.length<1){
-            issues.push('Typologies must have at least one named data field.');
-        }
-    })
-
-    // check if there are duplicate typology names
-
-    var typologyNames = typologies.map(typology => typology.name);
-    var duplicateTypologyNames = typologyNames.filter((name, index) => typologyNames.indexOf(name) !== index);
-    if(duplicateTypologyNames.length>0){
-        issues.push('Typology names must be unique. The following names are used more than once: ' + duplicateTypologyNames.join(', '));
-    }
-
-    // check if there are duplicate data field names within a typology
-
-    typologies.forEach(typology => {
-        var dataFieldNames = typology.properties.map(property => property.name);
-        var duplicateDataFieldNames = dataFieldNames.filter((name, index) => dataFieldNames.indexOf(name) !== index);
-        if(duplicateDataFieldNames.length>0){
-            issues.push('Data field names within a typology must be unique. The following names are used more than once in typology ' + typology.name + ': ' + duplicateDataFieldNames.join(', '));
-        }
-    });
-
-    // at least one background map must be selected
-
-    if(backgroundMaps.length<1){
-        issues.push('At least one background map must be selected');
-    }
-
-    
-
-
-
-
-    // remove duplicate issues
-    issues = [...new Set(issues)]
-
-    if(issues.length>0){
-        issuesHtml ="&#x2022 " + issues.join('<br><br>&#x2022 ');
-        show_prompt("Could not create map", issuesHtml)
-        return;
-
-    }
-
-
-    // send data to server
-    fetch('/giomap/create', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            name: name,
-            description: description,
-            leafletView: mapView,
-            typologies: typologies,
-            backgroundMaps: backgroundMaps,
-            preferredMapLanguage: preferredMapLanguage
-        })
-    }) // if status is ok, get the map id from the response
-    .then(res => {
-        if(res.status === 200) {
-            return res.json();
-        } else {
-            throw new Error('Could not create map');
-        }
-
+        <!-- post data div -->
+    </head>
+    <body>
         
-    }) // redirect to map edit page
-    .then(res => {
-        window.location.href = '/giomap/shared/' + res.shareLinkId;
-    })
+        
+        <!-- form to create a map -->
+        <!-- text fields for name and descripion -->
+        <!-- as well as a leaflet map that is used to define the maps initial view -->
+        <div id="createMapContainer">
+            <h1>Create a new Map</h1>
+            
+            <p>
+                <form id="createMapForm">
+                    <label for="name">Name</label><br>
+                    <textarea id="name" name="name" placeholder="Enter Map Name" rows="1"></textarea><br>
+                    <br>
+                    <label for="description">Description</label><br>
+                    <p>The description is displayed as an info text when opening the map.</p>
+                    <textarea id="description" name="description" placeholder="Enter description" rows="4" cols="20"></textarea><br>
+                    <br>
+                    <label for="customGeoItems">Geometry Typologies</label><br>    
+                    <p>Define what different kind of elements users can add to the map.
+                        For each type, you can define a name, what kind of geometry it should be, and a list of possible values.</p>
+                        <p>If you add options to a data field (type in the field and hit enter), the field will be a dropdown list. If you leave the 'options' field empty, it becomes a free text field. </p>
+                        <div id="customGeoItems"></div>
+                        <!-- button to add custom geo items -->
+                        <button type="button" onclick="addCustomGeoItem()">+</button>
+                        
+                        <br>
+                        <br>
+                        <br>
+                        <label for="leafletMap">Initial Map View</label><br>
+                        <div id="leafletMap"></div>
+                        <div ></div>
+                        <div id="filler" style="height: 400px; width: 50%; float: left;"></div>
+                        
+                        <br>
+                        
+                        <!-- check boxes: which background maps are available on the map? -->
+                        <!-- standard Open Street Maps  -->
+                        <!-- Google Hybrid Satellite Maps -->
+                        <!-- google Satellite Image -->
+                        <!-- Google Topographic Maps -->
+                        
+                        <br>
+                        <label for="backgroundMaps">Background Maps</label>
+                        <br>
+                        <input type="checkbox" id="osm" name="osm" value="osm" checked> <label for="osm" style="display:inline">Open Street Maps</label><br>
+                        <input type="checkbox" id="googleHybrid" name="googleHybrid" value="googleHybrid" checked> <label for="googleHybrid" style="display:inline">Google Hybrid Satellite Image</label><br>
+                        <input type="checkbox" id="googleSatellite" name="googleSatellite" value="googleSatellite" checked> <label for="googleSatellite" style="display:inline">Google Satellite Image</label><br>
+                        <input type="checkbox" id="googleMap" name="googleMap" value="googleMap"> <label for="googleMap" style="display:inline">Standard Google Map</label><br>
+                        <br>
+                        <!-- table with two columns for language picker -->
+                        
+                        <table style="width: 100%">
+                            <tr>
+                                <td>Google Background Map Language</td>
+                                <td>
+                                    <div id="googleMapLanguagePicker"></div>
+                                </td>
+                            </tr>
+                        </table>
+                        <button type="submit" name="action" value="save">Create Map</button>
+                        <button type="submit" class='cancelbutton' name="action" value="cancel">Cancel</button>
+                    </form>
+                </p>
+            </div>
+            
+            <!-- navigation -->
+            <%- include('./navigation', {page:'createmap'}) %>
+            
+        </body>
+        
+        <style>
+            
+            /* some top padding for form container */
+            #createMapContainer {
+                padding-top: 50px;
+            }
+            
+            .cancelbutton {
+                background-color: #f44336;
+                color: white;
+            }
+            
+            /* style for leaflet map */
+            #leafletMap {
+                height: 400px;
+                width: 50%;
+                /* align right */
+                float: right;
+                
+                
+            }
+            
+            
+            /* set tagify placeholder color --placeholder-color */
+            
+            .tagify__input {
+                --placeholder-color: #606060;
+            }
+            
+            /* /<td class="featureName"><input placeholder="data field name" style="height: 2.6em;"></td> */
+            /* style td of class featerName and featureValues  to be each 50% of table width*/
+            .featureName, .featureValues {
+                width: 50%;
+            }
+            
+            /* style tagify input to be full width of parent */
+            .tagify__input {
+                width: 100%;
+            }
+            
+            /* style input element inside featerName to be full width of parent */
+            .featureName input {
+                min-width: 99%;
+                margin-bottom: 0px;
+            }
+            
+            .tagifyInputField {
+                width: 100%;
+            }
+            
+            td {
+                border-bottom-style: none
+            }
+            
+            
+            
+        </style>
+        
+        
+        <script>
+            
+            // init leaflet map
+            map = mapViewPicker();
 
-
-}
-
-
-
-
-function googleMapLanguagePicker() {
-    // create select element
-    var select = document.createElement('select');
-    select.id = 'googleMapLanguage';
-    select.style.width = '100%';
-    select.style['margin-bottom'] = '0px';
-    // add option for based on user setting
-    var option = document.createElement('option');
-    option.value = 'user';
-    option.text = 'Based on visitor location';
-    select.appendChild(option);
-
-    // add options for available languages
-    const languages = [
-  { code: 'af', label: 'Afrikaans' },
-  { code: 'sq', label: 'Albanian' },
-  { code: 'am', label: 'Amharic' },
-  { code: 'ar', label: 'Arabic' },
-  { code: 'hy', label: 'Armenian' },
-  { code: 'az', label: 'Azerbaijani' },
-  { code: 'eu', label: 'Basque' },
-  { code: 'be', label: 'Belarusian' },
-  { code: 'bn', label: 'Bengali' },
-  { code: 'bs', label: 'Bosnian' },
-  { code: 'bg', label: 'Bulgarian' },
-  { code: 'my', label: 'Burmese' },
-  { code: 'ca', label: 'Catalan' },
-  { code: 'zh', label: 'Chinese' },
-  { code: 'zh-CN', label: 'Chinese (Simplified)' },
-  { code: 'zh-HK', label: 'Chinese (Hong Kong)' },
-  { code: 'zh-TW', label: 'Chinese (Traditional)' },
-  { code: 'hr', label: 'Croatian' },
-  { code: 'cs', label: 'Czech' },
-  { code: 'da', label: 'Danish' },
-  { code: 'nl', label: 'Dutch' },
-  { code: 'en', label: 'English' },
-  { code: 'en-AU', label: 'English (Australia)' },
-  { code: 'en-GB', label: 'English (United Kingdom)' },
-  { code: 'et', label: 'Estonian' },
-  { code: 'fa', label: 'Persian (Farsi)' },
-  { code: 'fi', label: 'Finnish' },
-  { code: 'fil', label: 'Filipino' },
-  { code: 'fr', label: 'French' },
-  { code: 'fr-CA', label: 'French (Canada)' },
-  { code: 'gl', label: 'Galician' },
-  { code: 'ka', label: 'Georgian' },
-  { code: 'de', label: 'German' },
-  { code: 'el', label: 'Greek' },
-  { code: 'gu', label: 'Gujarati' },
-  { code: 'iw', label: 'Hebrew' },
-  { code: 'hi', label: 'Hindi' },
-  { code: 'hu', label: 'Hungarian' },
-  { code: 'is', label: 'Icelandic' },
-  { code: 'id', label: 'Indonesian' },
-  { code: 'it', label: 'Italian' },
-  { code: 'ja', label: 'Japanese' },
-  { code: 'kn', label: 'Kannada' },
-  { code: 'kk', label: 'Kazakh' },
-  { code: 'km', label: 'Khmer' },
-  { code: 'ko', label: 'Korean' },
-  { code: 'ky', label: 'Kyrgyz' },
-  { code: 'lo', label: 'Lao' },
-  { code: 'lv', label: 'Latvian' },
-  { code: 'lt', label: 'Lithuanian' },
-  { code: 'mk', label: 'Macedonian' },
-  { code: 'ms', label: 'Malay' },
-  { code: 'ml', label: 'Malayalam' },
-  { code: 'mr', label: 'Marathi' },
-  { code: 'mn', label: 'Mongolian' },
-  { code: 'ne', label: 'Nepali' },
-  { code: 'no', label: 'Norwegian' },
-  { code: 'pl', label: 'Polish' },
-  { code: 'pt', label: 'Portuguese' },
-  { code: 'pt-BR', label: 'Portuguese (Brazil)' },
-  { code: 'pt-PT', label: 'Portuguese (Portugal)' },
-  { code: 'pa', label: 'Punjabi' },
-  { code: 'ro', label: 'Romanian' },
-  { code: 'ru', label: 'Russian' },
-  { code: 'sr', label: 'Serbian' },
-  { code: 'si', label: 'Sinhala' },
-  { code: 'sk', label: 'Slovak' },
-  { code: 'sl', label: 'Slovenian' },
-  { code: 'es', label: 'Spanish' },
-  { code: 'es-419', label: 'Spanish (Latin America)' },
-  { code: 'sw', label: 'Swahili' },
-  { code: 'sv', label: 'Swedish' },
-  { code: 'ta', label: 'Tamil' },
-  { code: 'te', label: 'Telugu' },
-  { code: 'th', label: 'Thai' },
-  { code: 'tr', label: 'Turkish' },
-  { code: 'uk', label: 'Ukrainian' },
-  { code: 'ur', label: 'Urdu' },
-  { code: 'uz', label: 'Uzbek' },
-  { code: 'vi', label: 'Vietnamese' },
-  { code: 'zu', label: 'Zulu' }
-];
-
-
-languages.forEach(lang => {
-    var option = document.createElement('option');
-    option.value = lang.code;
-    option.text = lang.label;
-    select.appendChild(option);
-
-    });
-    // return select element
-    return select;
-}
-
-languagePicker = googleMapLanguagePicker();
-document.getElementById('googleMapLanguagePicker').appendChild(languagePicker);
-
-
-
-function cancelMap (event) {
-    event.preventDefault();
-    // go to map list
-    window.location.href = '/giomap/list';
-}
-
-function getMapPerspective() {
-    const center = map.getCenter();
-    return {
-      center: [center.lat, center.lng],
-      zoom: map.getZoom()
-    };
-  }
-
-  // Function to set the map to a specific location and zoom
-  function setMapPerspective(perspective) {
-    map.setView(perspective.center, perspective.zoom);
-  }
-
-customGeoItems = [];
-
-function addCustomGeoItem () {
-    // create div, add tabletags element, add to customGeoItems div
-    var container = document.createElement('div');
-    // padding
-    container.style.padding = '20px';
-    container.style.position = 'relative';
-
-    // create table element
-    var table = document.createElement('table');
-    table.style.width = '100%';
-
-    // create table row for name
-    var nameRow = document.createElement('tr');
-
-    // create table cell for name label
-    var nameLabelCell = document.createElement('td');
-    nameLabelCell.style.width = '50%';
-    nameLabelCell.innerHTML = 'Name:';
-    nameRow.appendChild(nameLabelCell);
-
-    // create table cell for name input
-    var nameInputCell = document.createElement('td');
-    nameInputCell.style.width = '50%';
-    var nameInput = document.createElement('input');
-    // style to fill width
-    nameInput.style.width = '100%';
-    nameInput.style['margin-bottom'] = '0px';
-
-    nameInput.type = 'text';
-    nameInput.placeholder = 'Name';
-    nameInputCell.appendChild(nameInput);
-    nameRow.appendChild(nameInputCell);
-
-    // append name row to table
-    table.appendChild(nameRow);
-
-    // create table row for geometry type
-    var geometryTypeRow = document.createElement('tr');
-
-    // create table cell for geometry type label
-    var geometryTypeLabelCell = document.createElement('td');
-    geometryTypeLabelCell.style.width = '50%';
-    geometryTypeLabelCell.innerHTML = 'Geometry Type:';
-    geometryTypeRow.appendChild(geometryTypeLabelCell);
-
-    // create table cell for geometry type select
-    var geometryTypeSelectCell = document.createElement('td');
-    geometryTypeSelectCell.style.width = '50%';
-    var geometryTypeSelect = document.createElement('select');
-    geometryTypeSelect.style.width = '100%';
-    geometryTypeSelect.style['margin-bottom'] = '0px';
-    var geometryTypes = ['Point', 'Line', 'Polygon'];
-
-    // add dropdown menu for geometry type
-    var geometryTypeSelect = document.createElement('select');
-    geometryTypeSelect.id = 'geometryTypeSelect';
-    geometryTypeSelect.style.width = '100%';
-    geometryTypeSelect.style['margin-bottom'] = '0px';
-    geometryTypes.forEach(type => {
-        var option = document.createElement('option');
-        option.value = type;
-        option.text = type;
-        geometryTypeSelect.appendChild(option);
-    });
-    geometryTypeSelectCell.appendChild(geometryTypeSelect);
-    geometryTypeRow.appendChild(geometryTypeSelectCell);
-
-    
-    // append geometry type row to table
-    table.appendChild(geometryTypeRow);
-
-    // another row to contain data fields label
-    var dataFieldsLabelRow = document.createElement('tr');
-    var dataFieldsLabelCell = document.createElement('td');
-    datafieldslabel = document.createElement('label');
-    datafieldslabel.innerHTML = 'Data Fields:';
-    dataFieldsLabelCell.appendChild(datafieldslabel);
-    dataFieldsLabelRow.appendChild(dataFieldsLabelCell);
-    table.appendChild(dataFieldsLabelRow);
-
-    
-
-    // append table to container
-    container.appendChild(table);
-
-    var tableTagsContainer = document.createElement('div');
-    // round border for container
-    container.style.border = '1px solid #ccc';
-    container.style.borderRadius = '10px';
-    // bottom margin for container
-    container.style.marginBottom = '10px';
-    // turn into tabletags instance
-    var tableTags = new TableTags(tableTagsContainer);
-
-
-    container.appendChild(tableTagsContainer);
-
-    // create button to remove custom geo item
-    var removeButton = document.createElement('button');
-    // overwrite deafult "submit" behaviour
-    removeButton.type = 'button';
-    removeButton.innerHTML = 'x';
-    // place on top right corner of container - NOT of whole page
-    removeButton.style.position = 'absolute';
-    removeButton.style.top = '-4';
-    removeButton.style.right = '-4';
-    // make round
-    removeButton.style.borderRadius = '50%';
-    // padding
-    removeButton.style.padding = '5px';
-    removeButton.style.paddingBottom = '10px';
-    removeButton.style.width = '30px';
-    removeButton.style.height = '30px';
-
-    removeButton.onclick = function() {
-        // remove from array
-        customGeoItems = customGeoItems.filter(item => item.container !== container);
-        container.remove();
-    };
-    container.appendChild(removeButton);
-
-    // add relevant input fields to customGeoItems array
-    customGeoItems.push({
-        container: container,
-        nameInput: nameInput,
-        geometryTypeInput: geometryTypeSelect,
-        customFeatureInput: tableTags
-    });
-    // add container to customGeoItems div
-    document.getElementById('customGeoItems').appendChild(container);
-
-} 
-
-
-// have one custom geo item by default
-addCustomGeoItem();
-
-</script>
-
-
-
-</html>
+            // overwrite default form submit behaviour
+            
+            document.getElementById('createMapForm').addEventListener('submit', function(event) {
+                // prevent default behaviour
+                event.preventDefault();
+                // check which button was pressed
+                const action = event.submitter.value;
+                // call corresponding function
+                if (action === 'save') {
+                    saveMap(event, customGeoItems);
+                } else if (action === 'cancel') {
+                    cancelMap(event);
+                }
+            });
+            
+            
+            function saveMap (event, customGeoItems) {
+                event.preventDefault();
+                // get form data
+                const formData = new FormData(event.target);
+                // get map name
+                const name = formData.get('name');
+                // get map description
+                const description = formData.get('description');
+                // get map view
+                const mapView = getMapPerspective();
+                
+                // geometry property fields
+                var typologies = [];
+                // get all custom geo items
+                // iterate over all custom geo items
+                
+                for (var i = 0; i < customGeoItems.length; i++) {
+                    // get name input string
+                    var customGeometryName = customGeoItems[i].nameInput.value;
+                    // get geometry type. use select items id to get selected value
+                    var geometryType = customGeoItems[i].geometryTypeInput.value;
+                    // custom feature fields
+                    var customFeatureFields = customGeoItems[i].customFeatureInput.data;
+                    // remove empty fields
+                    customFeatureFields = customFeatureFields.filter(field => {
+                        return field.name !== '';
+                    });
+                    
+                    customFeatureFields.map(field => {
+                        // if theres no values, set type to text.
+                        //Otherwise set type to categorical and set categorical values
+                        if(field.values.length === 0) {
+                            field.type = 'text';
+                        } else {
+                            field.type = 'categorical';
+                            field.categoricalValues = field.values;
+                        }
+                        
+                        
+                        delete field.values;
+                        return field;
+                    });
+                    
+                    // add to geometry property fields
+                    typologies.push({
+                        name: customGeometryName,
+                        geometryType: geometryType,
+                        properties: customFeatureFields
+                    });
+                    
+                    
+                }
+                // array with names of selected background maps
+                var backgroundMaps = [];
+                ['osm', 'googleHybrid', 'googleSatellite', 'googleMap'].forEach(map => {
+                    if(document.getElementById(map).checked) {
+                        backgroundMaps.push(map);
+                    }
+                });
+                
+                const preferredMapLanguage = document.getElementById('googleMapLanguage').value;
+                
+                
+                
+                // validate inputs
+                
+                var issues = [];
+                
+                if(!name | name ==''){
+                    issues.push('Map must have a name')
+                }
+                
+                if(typologies.length<1){
+                    issues.push('Map must have at least one Typology defined');
+                }
+                
+                typologies.forEach(typology => {
+                    if(!typology.name || typology.name === ""){
+                        issues.push('All Typologies must have a name');
+                    }
+                    if(typology.properties.length<1){
+                        issues.push('Typologies must have at least one named data field.');
+                    }
+                })
+                
+                // check if there are duplicate typology names
+                
+                var typologyNames = typologies.map(typology => typology.name);
+                var duplicateTypologyNames = typologyNames.filter((name, index) => typologyNames.indexOf(name) !== index);
+                if(duplicateTypologyNames.length>0){
+                    issues.push('Typology names must be unique. The following names are used more than once: ' + duplicateTypologyNames.join(', '));
+                }
+                
+                // check if there are duplicate data field names within a typology
+                
+                typologies.forEach(typology => {
+                    var dataFieldNames = typology.properties.map(property => property.name);
+                    var duplicateDataFieldNames = dataFieldNames.filter((name, index) => dataFieldNames.indexOf(name) !== index);
+                    if(duplicateDataFieldNames.length>0){
+                        issues.push('Data field names within a typology must be unique. The following names are used more than once in typology ' + typology.name + ': ' + duplicateDataFieldNames.join(', '));
+                    }
+                });
+                
+                // at least one background map must be selected
+                
+                if(backgroundMaps.length<1){
+                    issues.push('At least one background map must be selected');
+                }
+                
+                
+                // remove duplicate issues
+                issues = [...new Set(issues)]
+                
+                if(issues.length>0){
+                    issuesHtml ="&#x2022 " + issues.join('<br><br>&#x2022 ');
+                    show_prompt("Could not create map", issuesHtml)
+                    return;
+                    
+                }
+                
+                // send data to server
+                fetch('/giomap/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        description: description,
+                        leafletView: mapView,
+                        typologies: typologies,
+                        backgroundMaps: backgroundMaps,
+                        preferredMapLanguage: preferredMapLanguage
+                    })
+                }) // if status is ok, get the map id from the response
+                .then(res => {
+                    if(res.status === 200) {
+                        return res.json();
+                    } else {
+                        throw new Error('Could not create map');
+                    }
+                    
+                    
+                }) // redirect to map edit page
+                .then(res => {
+                    window.location.href = '/giomap/shared/' + res.shareLinkId;
+                })
+                
+                
+            }
+            
+            
+            
+            
+            languagePicker = googleMapLanguagePicker();
+            document.getElementById('googleMapLanguagePicker').appendChild(languagePicker);
+            
+            
+            
+            function cancelMap (event) {
+                event.preventDefault();
+                // go to map list
+                window.location.href = '/giomap/list';
+            }
+            
+            function getMapPerspective() {
+                const center = map.getCenter();
+                return {
+                    center: [center.lat, center.lng],
+                    zoom: map.getZoom()
+                };
+            }
+            
+            // Function to set the map to a specific location and zoom
+            function setMapPerspective(perspective) {
+                map.setView(perspective.center, perspective.zoom);
+            }
+            
+            customGeoItems = [];
+            
+            function addCustomGeoItem () {
+                // create div, add tabletags element, add to customGeoItems div
+                var container = document.createElement('div');
+                // padding
+                container.style.padding = '20px';
+                container.style.position = 'relative';
+                
+                // create table element
+                var table = document.createElement('table');
+                table.style.width = '100%';
+                
+                // create table row for name
+                var nameRow = document.createElement('tr');
+                
+                // create table cell for name label
+                var nameLabelCell = document.createElement('td');
+                nameLabelCell.style.width = '50%';
+                nameLabelCell.innerHTML = 'Name:';
+                nameRow.appendChild(nameLabelCell);
+                
+                // create table cell for name input
+                var nameInputCell = document.createElement('td');
+                nameInputCell.style.width = '50%';
+                var nameInput = document.createElement('input');
+                // style to fill width
+                nameInput.style.width = '100%';
+                nameInput.style['margin-bottom'] = '0px';
+                
+                nameInput.type = 'text';
+                nameInput.placeholder = 'Name';
+                nameInputCell.appendChild(nameInput);
+                nameRow.appendChild(nameInputCell);
+                
+                // append name row to table
+                table.appendChild(nameRow);
+                
+                // create table row for geometry type
+                var geometryTypeRow = document.createElement('tr');
+                
+                // create table cell for geometry type label
+                var geometryTypeLabelCell = document.createElement('td');
+                geometryTypeLabelCell.style.width = '50%';
+                geometryTypeLabelCell.innerHTML = 'Geometry Type:';
+                geometryTypeRow.appendChild(geometryTypeLabelCell);
+                
+                // create table cell for geometry type select
+                var geometryTypeSelectCell = document.createElement('td');
+                geometryTypeSelectCell.style.width = '50%';
+                var geometryTypeSelect = document.createElement('select');
+                geometryTypeSelect.style.width = '100%';
+                geometryTypeSelect.style['margin-bottom'] = '0px';
+                var geometryTypes = ['Point', 'Line', 'Polygon'];
+                
+                // add dropdown menu for geometry type
+                var geometryTypeSelect = document.createElement('select');
+                geometryTypeSelect.id = 'geometryTypeSelect';
+                geometryTypeSelect.style.width = '100%';
+                geometryTypeSelect.style['margin-bottom'] = '0px';
+                geometryTypes.forEach(type => {
+                    var option = document.createElement('option');
+                    option.value = type;
+                    option.text = type;
+                    geometryTypeSelect.appendChild(option);
+                });
+                geometryTypeSelectCell.appendChild(geometryTypeSelect);
+                geometryTypeRow.appendChild(geometryTypeSelectCell);
+                
+                
+                // append geometry type row to table
+                table.appendChild(geometryTypeRow);
+                
+                // another row to contain data fields label
+                var dataFieldsLabelRow = document.createElement('tr');
+                var dataFieldsLabelCell = document.createElement('td');
+                datafieldslabel = document.createElement('label');
+                datafieldslabel.innerHTML = 'Data Fields:';
+                dataFieldsLabelCell.appendChild(datafieldslabel);
+                dataFieldsLabelRow.appendChild(dataFieldsLabelCell);
+                table.appendChild(dataFieldsLabelRow);
+                
+                
+                
+                // append table to container
+                container.appendChild(table);
+                
+                var tableTagsContainer = document.createElement('div');
+                // round border for container
+                container.style.border = '1px solid #ccc';
+                container.style.borderRadius = '10px';
+                // bottom margin for container
+                container.style.marginBottom = '10px';
+                // turn into tabletags instance
+                var tableTags = new TableTags(tableTagsContainer);
+                
+                
+                container.appendChild(tableTagsContainer);
+                
+                // create button to remove custom geo item
+                var removeButton = document.createElement('button');
+                // overwrite deafult "submit" behaviour
+                removeButton.type = 'button';
+                removeButton.innerHTML = 'x';
+                // place on top right corner of container - NOT of whole page
+                removeButton.style.position = 'absolute';
+                removeButton.style.top = '-4';
+                removeButton.style.right = '-4';
+                // make round
+                removeButton.style.borderRadius = '50%';
+                // padding
+                removeButton.style.padding = '5px';
+                removeButton.style.paddingBottom = '10px';
+                removeButton.style.width = '30px';
+                removeButton.style.height = '30px';
+                
+                removeButton.onclick = function() {
+                    // remove from array
+                    customGeoItems = customGeoItems.filter(item => item.container !== container);
+                    container.remove();
+                };
+                container.appendChild(removeButton);
+                
+                // add relevant input fields to customGeoItems array
+                customGeoItems.push({
+                    container: container,
+                    nameInput: nameInput,
+                    geometryTypeInput: geometryTypeSelect,
+                    customFeatureInput: tableTags
+                });
+                // add container to customGeoItems div
+                document.getElementById('customGeoItems').appendChild(container);
+                
+            } 
+            
+            
+            // have one custom geo item by default
+            addCustomGeoItem();
+            
+        </script>
+        
+        
+        
+        </html>

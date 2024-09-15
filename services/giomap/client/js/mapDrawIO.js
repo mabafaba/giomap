@@ -8,13 +8,10 @@
 // it has a method to add editing controls to the map, and a method to connect the map to the server.
 
 
-
-
-mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
+mapio = function(map, mapCanvasShareLinkId, editingLayer){
     mapio = {
         map: map,
         mapCanvasShareLinkId: mapCanvasShareLinkId, // a string unique ID to create an 'obscure' url for the map
-        onEachNewFeature: onEachNewFeature, // function that is applied to each drawn 'feature' before it is added to leaflet  
         editingLayer: null, // the leaflet layer object that the user is currently editing 
         layers: [], // array of leaflet layers that users can select and draw on
         socket: io({
@@ -22,6 +19,39 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
         }),
         controls: [],
         user: null,
+
+
+
+        // allow users to do map.io.on('newFeature', ...)
+        // to add other events, add them to the events object
+        // with the same structure as newFeature
+        // then call mapio.events[event].fire(layer) where the event should be fired.
+        on : function (event, func) {
+            this.events[event].add(func);
+        },
+
+        off : function (event, func) {
+            this.events[event].remove(func);
+        },
+
+        events: {
+            
+            newFeature: {
+                callbacks: [],
+                add: function (callback) {
+                    this.callbacks.push(callback);
+                },
+                remove: function (callback) {
+                    this.callbacks = this.callbacks.filter(f => f !== callback);
+                },
+                fire: function (layer) {
+                    this.callbacks.forEach(callback => callback(layer));
+                }
+            }
+
+
+        },
+
         init: function (map) {
             // Initialise the FeatureGroup to store editable layers
             if(!editingLayer){
@@ -107,7 +137,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 polygon: {
                     shapeOptions: {
                         color: this.user.color,
-                        fill: true,
+                        // fill: true,
                         opacity: 1
                     }
                 },
@@ -187,59 +217,11 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
             this.controls.push(jsonuploadcontrol);
             
             
-            // custom radio buttons to select which layer to edit / draw on
             
-            // L.Control.LayerSelection = L.Control.extend({
-            //     onAdd: function(map) {
-            //         var controlDiv = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');                           
-            //         controlDiv.innerHTML = '<div class="layer-selection" style="display: flex; align-items: center; justify-content: center; gap: 5px; background:#FFFFFF;padding:4px;"><label for="layer-selection">Layer:</label><input type="radio" id="layer-selection" name="layer-selection" value="editing" checked><label for="editing">Editing</label><input type="radio" id="layer-selection" name="layer-selection" value="background"><label for="background">Background</label></div>';
-            
-            //         controlDiv.addEventListener('click', function(e){
-            //             if(e.target.value == 'editing'){
-            //                 map.removeLayer(mapio.backgroundLayer);
-            //                 map.addLayer(mapio.editingLayer);
-            //             }else if(e.target.value == 'background'){
-            //                 map.removeLayer(mapio.editingLayer);
-            //                 map.addLayer(mapio.backgroundLayer);
-            //             }
-            //         });
-            //         return controlDiv;
-            //     },
-            
-            //     onRemove: function(map) {
-            //         // Nothing to do here
-            //     }
-            // });
-            
-            // L.control.layerselection = function(opts) {
-            //     return new L.Control.LayerSelection(opts);
-            // }
-            
-            // layerselectioncontrol = L.control.layerselection({ position: 'topright' });
-            // layerselectioncontrol.addTo(map);
-            
-            // this.controls.push(layerselectioncontrol);
-            
-            
-            
-            
-        },
-        
-        
-        internalFeatureOnclick: function (e) {
-            // mainly used for debugging, but can be changed to do something else
-            console.log(e);
-            // highlight feature
-            // this.highlightFeature(e.target);
-            // fly to feature
-            // this.flyToFeature(e.target);
-            
-        },
-        
-        
+        },        
         
         connectMapToServer: function (map, editingLayer) {
-            this.socket.emit('joinMapRoom', this.mapCanvasShareLinkId, this.onEachNewFeature);
+            this.socket.emit('joinMapRoom', this.mapCanvasShareLinkId);
             this.listenForIncomingEdits(map, editingLayer);
             this.sendOutgoingEdits(map, editingLayer);
             this.addGeometriesFromServerToLayer('/giomap/geojson/'+ this.mapCanvasShareLinkId, this.editingLayer);
@@ -271,6 +253,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
 
 
         },
+
 
         disableEditing: function () {
             console.log('disableEditing');
@@ -316,6 +299,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
         
         listenForIncomingEdits: function (map, editingLayer) {
             this.socket.on('someoneMadeAGeometry!', (geojsonFeature)=>{
+                console.log('someoneMadeAGeometry!', geojsonFeature);
                 newLayer = GeoJsonToLayer(geojsonFeature);
                 
                 // remove layer if it already exists
@@ -328,13 +312,8 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 });
                 
                 
-                // add popup to layer
-                newLayer.forEach( l => this.onEachNewFeature(l) );
-                
-                // add internal onclick event
-                
-                newLayer.forEach( l => l.on('click', this.internalFeatureOnclick.bind(this)) );
-                
+                // run newFeature event
+                newLayer.forEach( l => this.events.newFeature.fire(l) );                
                 
                 // add layer to map
                 newLayer.forEach( l => editingLayer.addLayer(l) );
@@ -365,37 +344,38 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
         },
         
         sendOutgoingEdits: function (map, editingLayer) {
-            map.on('draw:created', (e) => {
+            this.map.on('draw:created', (e) => {
+                console.log('draw:created');
                 var type = e.layerType,
                 layer = e.layer;
+                console.log('drawn:created layer', layer);
                 
                 // add popup to layer
-                this.onEachNewFeature(layer);
+                console.log('newFewature event fired');
+                this.events.newFeature.fire(layer);
                 
                 // add user 
                 // layer.feature.properties.user = this.user;
                 // layerWithPopup.openPopup();
+                console.log('openPopup');
                 setTimeout(function(){layer.openPopup();}, 0); // waiting 0ms resolves the popup not opening when a rectangle is created by dragging instead of two clicks
-                
-                editingLayer.addLayer(layer);
-
-                // add internal onclick event
-                console.log(layer);
+                console.log('addLayer');
+                this.editingLayer.addLayer(layer);
 
                 // save layer to server
-                this.saveLayerToServer(layer);
-                layer.on('click', this.internalFeatureOnclick.bind(this));
+                console.log('setLayerForEveryone');
+                this.setLayerForEveryone(layer);
                 
                 
                 
             });
             
-            map.on('draw:edited', (e) => {
+            this.map.on('draw:edited', (e) => {
                 // leaflet attaches the edited layers to the event object
                 var editedLayers = e.layers._layers
                 // for each edited layer
                 Object.keys(editedLayers).forEach((key) => {
-                    this.saveLayerToServer(editedLayers[key]);
+                    this.setLayerForEveryone(editedLayers[key]);
                     
                 });
                 
@@ -404,7 +384,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 
             });
             
-            map.on('draw:deleted',  (e)=> {
+            this.map.on('draw:deleted',  (e)=> {
                 // leaflet attaches the deleted layers to the event object
                 var deletedLayers = e.layers._layers
                 // for each item in layers (layers is an object, not an array)
@@ -416,7 +396,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
             });
             
             
-            map.on('draw:editstart', function (e) {
+            this.map.on('draw:editstart', function (e) {
                 // prevent popups from opening while editing geometries
                 editingLayer.eachLayer(function (layer) {
                     // close any open popups
@@ -426,7 +406,7 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                 });
             });
             
-            map.on('draw:editstop', function (e) {
+            this.map.on('draw:editstop', function (e) {
                 // reactivate popups after editing geometries
                 editingLayer.eachLayer(function (layer) {
                     layer.on('click', function(e) {
@@ -444,16 +424,19 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
         },
         
         
-        saveLayerToServer: function (layer) {
+        setLayerForEveryone: function (layer) {
+            console.log('setLayerForEveryone', layer);
             feature = layer.feature = layer.feature || {};
             // make sure layer has all required properties
             var feature = layer.feature = layer.feature || {};
             feature.type = feature.type || "Feature";
             feature.properties = feature.properties || {};
             feature.properties.uuid = feature.properties.uuid || crypto.randomUUID();
-            
+
+
             // custom properties should already be set.
-            
+            // console.log('user - setLayerForEveryone', this.user);
+            // log this
             // add user to feature
             feature.properties.createdBy = this.user;
             
@@ -463,8 +446,12 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
             feature.properties.fill = true;
             feature.properties.fillColor = this.user.color;
             feature.properties.fillOpacity = 1;
+            // count how often setLayerForEveryone is called
+            feature.properties.setLayerForEveryoneCount = feature.properties.setLayerForEveryoneCount ? feature.properties.setLayerForEveryoneCount + 1 : 1;
+
             this.styleGeometry(layer);
-            
+            console.log('iMadeAGeometry!', LayerToGeoJson(layer));
+
             this.socket.emit('iMadeAGeometry!', {"layer": LayerToGeoJson(layer), "mapcanvasShareLinkId": mapCanvasShareLinkId});
             
         },
@@ -496,11 +483,10 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     
                     geojsonLayer.forEach(
                         (l)=>{
-                            this.onEachNewFeature(l);
+                            this.events.newFeature.fire(l);
                             targetLayer.addLayer(l);
                             this.styleGeometry(l);
                             // add internal onclick event
-                            l.on('click', this.internalFeatureOnclick.bind(this));
                             
                             
                             
@@ -536,9 +522,18 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
             },
             styleGeometry: function(layer){
                 color = layer.feature.properties.color ? layer.feature.properties.color : "#FF0000";
-                opacity = layer.feature.properties.opacity ? layer.feature.properties.opacity : 1;
+                opacity = layer.feature.properties.opacity ? layer.feature.properties.opacity : 0.9;
+                fill = layer.feature.properties.fill ? layer.feature.properties.fill : true;
+                // set weight to 2 if not set
+                weight = layer.feature.properties.weight ? layer.feature.properties.weight : 4;
+                fillOpacity = 0.6;
+                // if layer is polygon or polyline , set fill to false
+                if(layer instanceof L.Polygon || layer instanceof L.Polyline){
+                    fill = false;
+                }
                 if(layer.setStyle){
-                    layer.setStyle({color: color, fill: false, opacity: opacity});
+                    
+                    layer.setStyle({color: color, fill: fill, opacity: opacity, weight: weight, fillOpacity: fillOpacity});
                 }
                 
                 
@@ -632,6 +627,9 @@ mapio = function(map, mapCanvasShareLinkId, onEachNewFeature, editingLayer){
                     "mapView": mapView
                 });
                 }
+
+            
+
                 
             
             

@@ -144,9 +144,11 @@ module.exports = function(app, io){
     // handle user creating/editing a geometry
     socket.on("iMadeAGeometry!",
       async json => {
+        console.log('heard iMadeAGeometry!', json);
         saveGeometry(json, socket)
         .then((data) => {
           // broadcast to mapcanvasShareLinkId room
+          console.log('broadcasting to room', json.mapcanvasShareLinkId);
           socket.broadcast.to(json.mapcanvasShareLinkId).emit('someoneMadeAGeometry!', data);
         })
       }

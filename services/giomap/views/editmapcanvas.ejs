@@ -103,7 +103,7 @@ function getMapDetails () {
     const url = window.location.href;
     const mapId = url.substring(url.lastIndexOf('/') + 1);
     // get map details from server
-    fetch('/giomap/mapdetails/' + mapId)
+    fetch('/giomap/list/json/' + mapId)
     .then(res => {
         if(res.status === 200) {
             return res.json();

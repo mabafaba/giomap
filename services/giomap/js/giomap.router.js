@@ -110,13 +110,20 @@ const mapdrawing = require('./mapdrawing.model');
     );
 
 
+
+    
+    router.route('/list')
+    .get(authorizeAndRedirect, (req, res) => {
+        res.render('listmaps');
+    });
+
     
     router.route( '/list/json')
     .get(authorizeAndRedirect, async (req, res) => {
         var allMaps = await MapCanvas.find();
         // populate user details for all maps
         // only keep user id and username
-        allMaps = await MapCanvas.populate(allMaps, { path: 'createdBy', select: 'i_d username' });
+        allMaps = await MapCanvas.populate(allMaps, { path: 'createdBy', select: 'i_d username role' });
         allMapsJson = allMaps.map((map) => {
             mapObj = map.toObject();
             // add boolean - is user creator?
@@ -129,11 +136,26 @@ const mapdrawing = require('./mapdrawing.model');
         })
         res.send(allMapsJson);
     });
-    
-    router.route('/list')
-    .get(authorizeAndRedirect, (req, res) => {
-        res.render('listmaps');
+
+      
+    router.route('/list/json/:shareLinkId')
+    .get(authorizeAndRedirect, async (req, res, next) => {
+        // not standard id, we're using shareLinkId instead (unguessable link)
+        MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
+        // fill in createdBy details // username, _id, role
+        .populate('createdBy', 'username _id role')
+        .then((mapCanvas) => {
+            // if not found, dont handle this request
+            if (!mapCanvas) {
+                res.status(404).send('This map does not exist!');
+            }
+            // dont include map content, this is only for the map metadata
+            delete mapCanvas.mapdrawings;
+
+            res.status(200).send(mapCanvas);
+        })
     });
+    
     
     router.route('/create')
     .post(authorizeAndRedirect, async (req, res) => {
@@ -255,21 +277,7 @@ const mapdrawing = require('./mapdrawing.model');
     }
     );
     
-    
-    router.route('/mapdetails/:shareLinkId')
-    .get(authorizeAndRedirect, async (req, res, next) => {
-        // not standard id, we're using shareLinkId instead (unguessable link)
-        MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
-        // fill in createdBy details
-        .populate('createdBy')
-        .then((mapCanvas) => {
-            // if not found, dont handle this request
-            if (!mapCanvas) {
-                res.status(404).send('This map does not exist!');
-            }
-            res.status(200).send(mapCanvas);
-        })
-    });
+  
     
     
     
