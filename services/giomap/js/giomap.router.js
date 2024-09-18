@@ -160,7 +160,6 @@ const mapdrawing = require('./mapdrawing.model');
     router.route('/create')
     .post(authorizeAndRedirect, async (req, res) => {
         req.body.shareLinkId = crypto.randomBytes(20).toString('hex');
-        console.log('user creating map', req.body.user);
         MapCanvas.create({
             name: req.body.name,
             description: req.body.description,

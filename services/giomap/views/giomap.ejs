@@ -23,7 +23,7 @@
     
     <!-- giomap JS script -->
     <script src="../js/geoutils.js"></script>
-    <script src="../js/mapDrawIO.js"></script>
+    <script src="../js/leafletIO.js"></script>
     <script src="../js/components/TypologySelector.js"></script>
 
     <!-- giomap leaflet map -->
@@ -35,15 +35,18 @@
     
     
     <!-- <div id="cover" style="background-color:aquamarine;position:fixed;width:100%;height:100%;z-index:3000;left:0;top:0"></div> -->
-    <!-- <button id="gotome" style="position:fixed;left:50%;top:50%;z-index:3001;" onclick="goToUser()">Go to me!</button> -->
-    <!-- post data div -->
 </head>
+
+
 <body>
     
     <%- include('./navigation', {page:"giomap"}) %>         
     <div id="map"></div>
     <div id="typologyActionControl"></div>
-    <div id="hostPanel"></div>
+    <div id="hostPanel">
+
+
+    </div>
     <%- include('./alert') %>
     
 </body>
@@ -99,7 +102,7 @@
                     // fully round sides
                     button.style.borderRadius = "20px";
                     // add event listener to button
-                    button.addEventListener('click', function(e){
+                        button.addEventListener('click', function(e){
                         // prevent default action
                         e.preventDefault();
                         e.stopImmediatePropagation();
@@ -190,6 +193,12 @@
                             feature.properties.uuid = crypto.randomUUID();
                             
                             feature.properties.color = giomap.io.user.color;
+
+                            // make sure Points are declared as circle markers
+                            // add properties.markerType: "circle"
+                            if(feature.geometry.type == "Point"){
+                                feature.properties.markerType = "circle";
+                            }
                             
                             
                             // send to server 
@@ -241,11 +250,6 @@
 
                 createButton(){
                     this.button = document.createElement('button');
-                    this.button.innerHTML = 'Discuss Datapoint';
-                    this.button.style.margin = "5px";
-                    this.button.style.boxShadow = "0px 0px 5px 0px rgba(0,0,0,0.75)";
-                    this.button.style.borderRadius = "20px";
-                    this.button.style.backgroundColor = "cyan";
 
                     this.buttonDefaultStyle();
                     this.button.addEventListener('click', ()=>{
@@ -255,13 +259,17 @@
 
                 buttonDefaultStyle(){
                     this.button.innerHTML = 'Discuss Datapoint';
-                    this.button.style.backgroundColor = "light blue";
+                    this.button.style.margin = "5px";
+                    this.button.style.boxShadow = "0px 0px 5px 0px rgba(0,0,0,0.75)";
+                    this.button.style.borderRadius = "20px";
+                    this.button.style.backgroundColor = "cyan";
+
                     if(this.button.querySelector('div')){
                         this.button.querySelector('div').remove();
                     }
                 }
 
-                buttonStyleWhilePickingLayerToHighlight(){ 
+                buttonStyleWhilePickingLayerToHighlight(){  
                     this.button.innerHTML = 'click on data point to discuss!';
                     this.button.style.backgroundColor = "orange";
                     // add round div with 'x' to cancel highlighting to button content
@@ -284,7 +292,6 @@
                 }
 
                 highlightHandler (e) {
-                            console.log('highlighting layer', e.target);
                             // mapio.highlightFeature(e.target);
                            this.mapio.highlightLayerForEveryone(e.target);
                             this.stopSelectingLayerToHighlight();
@@ -292,7 +299,6 @@
 
                 startSelectingLayerToHighlight(){
                     // change button style:
-                    console.log('this', this);
                     this.buttonStyleWhilePickingLayerToHighlight();
 
                     // don't open any popups until selected
@@ -302,7 +308,6 @@
                     
                     this.mapio.editingLayer.eachLayer((layer)=>{
                         layer.on('click', this.highlightHandler.bind(this));
-                        console.log('event listeners', layer._events);
                     });
 
                     // stop selecting layer to highlight when user clicks anywhere on map that is not a layer
@@ -315,7 +320,6 @@
                     this.buttonDefaultStyle();
                     this.mapio.editingLayer.eachLayer((layer)=>{
                         // list event listeners
-                        // console.log('event listeners', layer._events);
                         layer.off('click');
                         // reinstate popup
 
@@ -323,7 +327,7 @@
                     this.mapio.enableEditing();
 
                     // remove map click event listener
-                    this.mapio.map.off('click', this.stopSelectingLayerToHighlight);
+                    // this.mapio.map.off('click', this.stopSelectingLayerToHighlight);
 
 
                     

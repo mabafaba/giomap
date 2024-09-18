@@ -11,6 +11,8 @@
 class Giomap {
     constructor(mapId) {
         this.mapId = mapId;
+        // clean up map id (only allow alphanumeric characters)
+        this.mapId = this.mapId.replace(/[^a-zA-Z0-9]/g, '');
         this.metadata = "havent called init yet";
         this.map = null;
         this.io = null;

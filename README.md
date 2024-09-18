@@ -150,11 +150,6 @@ Feel free to contact me directly.
 
 
 ## TO DO
-- edit map data properties
-- map creator can predefine different standard map entries
-
-- Popup not working reliably on circle / rectangle
-- add user name and id to drawings on upon creation
 - add authentification (who can see which maps)
 
 
@@ -164,12 +159,24 @@ Feel free to contact me directly.
 - get rid of ejs templating enginge. Use plain HTML. // see https://dev.to/andreygermanov/modular-html-19o6
 - use socket.io only to alert clients of changes. Use REST API for everything else.
 
+### Refactoring
+- leafletIO as fully independent service, standard structure as in user & giomap module
+- should independent services get their own repo? C
+- handle inconsistent typologies on the same map
+- map details editing to include typologies
+- move js in giomap.ejs to appropriate files (leafletIO.js, giomap.js, another?)
+- leafletIO and mapio name consistency
+- leafletIO to accept IO as input (client side)
+- more clarity regarding what depends on / contains what (i.e. having a reference to the global map object in giomap.io.map is confusing). 
 
 ## version history
 
 prototype 2 
 
 - user defined map features
+- action buttons for typologies
 - select basemaps
 - base map langauge
 - workshop host panel: focus on feature
+- workshop host panel: share map view
+- add user name and id to drawings on upon creation

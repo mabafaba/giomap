@@ -247,7 +247,6 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
             });
 
             this.socket.on('someoneBringsEveryoneToTheirView!', (json)=>{
-                console.log('someoneBringsEveryoneToTheirView!', json);
                 this.map.setView(json.center, json.zoom);
             })
 
@@ -256,21 +255,10 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
 
 
         disableEditing: function () {
-            console.log('disableEditing');
             this.editingLayer.eachLayer(function (layer) {
                 layer.unbindPopup();
 
             });
-
-            // remove editing controls
-            this.controls.forEach((control)=>{
-                // is this the draw control?
-                if(control.options.draw){
-                    // remove draw control
-                    map.removeControl(control);
-                }
-            });
-
 
         },
 
@@ -280,8 +268,6 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
                 layer.bindPopup();
             });
 
-            // add editing controls
-            this.addEditingControls(this.map);
         },
 
 
@@ -292,14 +278,14 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
                 "mapcanvasShareLinkId": this.mapCanvasShareLinkId
 
             }
-            console.log('iHighlightedAGeometryForEveryone!', toHighlight);
             this.socket.emit('iHighlightedAGeometryForEveryone!', toHighlight);
         },
 
         
         listenForIncomingEdits: function (map, editingLayer) {
             this.socket.on('someoneMadeAGeometry!', (geojsonFeature)=>{
-                console.log('someoneMadeAGeometry!', geojsonFeature);
+
+
                 newLayer = GeoJsonToLayer(geojsonFeature);
                 
                 // remove layer if it already exists
@@ -310,6 +296,8 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
                         editingLayer.removeLayer(layer);
                     }
                 });
+
+                
                 
                 
                 // run newFeature event
@@ -345,25 +333,19 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
         
         sendOutgoingEdits: function (map, editingLayer) {
             this.map.on('draw:created', (e) => {
-                console.log('draw:created');
                 var type = e.layerType,
                 layer = e.layer;
-                console.log('drawn:created layer', layer);
                 
                 // add popup to layer
-                console.log('newFewature event fired');
                 this.events.newFeature.fire(layer);
                 
                 // add user 
                 // layer.feature.properties.user = this.user;
                 // layerWithPopup.openPopup();
-                console.log('openPopup');
                 setTimeout(function(){layer.openPopup();}, 0); // waiting 0ms resolves the popup not opening when a rectangle is created by dragging instead of two clicks
-                console.log('addLayer');
                 this.editingLayer.addLayer(layer);
 
                 // save layer to server
-                console.log('setLayerForEveryone');
                 this.setLayerForEveryone(layer);
                 
                 
@@ -425,7 +407,6 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
         
         
         setLayerForEveryone: function (layer) {
-            console.log('setLayerForEveryone', layer);
             feature = layer.feature = layer.feature || {};
             // make sure layer has all required properties
             var feature = layer.feature = layer.feature || {};
@@ -433,14 +414,8 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
             feature.properties = feature.properties || {};
             feature.properties.uuid = feature.properties.uuid || crypto.randomUUID();
 
-
-            // custom properties should already be set.
-            // console.log('user - setLayerForEveryone', this.user);
-            // log this
-            // add user to feature
             feature.properties.createdBy = this.user;
             
-            // add color to feature
             feature.properties.color = this.user.color;
             feature.properties.opacity = 1;
             feature.properties.fill = true;
@@ -450,7 +425,6 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
             feature.properties.setLayerForEveryoneCount = feature.properties.setLayerForEveryoneCount ? feature.properties.setLayerForEveryoneCount + 1 : 1;
 
             this.styleGeometry(layer);
-            console.log('iMadeAGeometry!', LayerToGeoJson(layer));
 
             this.socket.emit('iMadeAGeometry!', {"layer": LayerToGeoJson(layer), "mapcanvasShareLinkId": mapCanvasShareLinkId});
             
@@ -541,10 +515,8 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
             },
             
             highlightFeature: function (layer) {
-                console.log('mapio highlightFeature', layer);
                 // make all other features gray
                 this.editingLayer.eachLayer(function (l) {
-                    console.log('setting color to gray');
                     if(l.setStyle){
                     l.setStyle({color: '#808080'});
                     }
@@ -576,7 +548,6 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
             unhighlightFeature: function () {
                 // return all features to original color and weight
                 this.editingLayer.eachLayer(function (l) {
-                    console.log('setting color to original');
                     if(l.setStyle){
                     l.setStyle({color: l.feature.properties.color});
                     l.setStyle({weight: l.feature.properties.weight ? l.feature.properties.weight : 2});
@@ -594,7 +565,6 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
             },
             
             flyToFeature: function (layer) {
-                console.log(layer);
                 if(layer.getBounds){
                     this.map.flyToBounds(layer.getBounds());
                 }else{
@@ -619,9 +589,7 @@ mapio = function(map, mapCanvasShareLinkId, editingLayer){
 
 
                 // fly to all geometries
-                console.log('bringEveryoneToMyView');
                 var mapView = getMapPerspective(this.map);
-                console.log('iBringEveryoneToMyView!', mapView);
                 this.socket.emit('iBringEveryoneToMyView!', {
                     "mapcanvasShareLinkId": this.mapCanvasShareLinkId,
                     "mapView": mapView
