@@ -62,7 +62,7 @@ module.exports = function(io){
 
     socket.on('iHighlightedAGeometryForEveryone!', async json => {
 
-      handleHighlightGeometryForEveryone(socket, json);
+      handleHighlightGeometryForEveryone(socket, io, json);
 
     });
 
