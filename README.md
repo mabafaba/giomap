@@ -148,6 +148,64 @@ Best way to start is to open an issue to discuss the feature you would like to a
 Feel free to contact me directly.
 
 
+## Architecture
+
+
+
+The whole application is divided into services. Each service is responsible for a specific part of the application.
+
+### Services
+
+- user: handles user authentication and authorization
+- giomap: handles map creation, editing, and viewing
+- leafletIO: handles real-time communication between clients and the server. For now, this is under the giomap service, but it should be a separate service or npm package eventually.
+
+Each service handles its own back and frontend including routes, views, and database, and client-side logic.
+That way, each service is independent and can be developed and tested separately, and be reused in other projects.
+
+Service folder structure is:
+
+```
+services / serviceName // service folder
+
+services / serviceName / index.js // exports service as a module
+
+services / serviceName / client / // static client side logic & assets
+
+services / serviceName / js / serviceName.server.js // server logic
+services / serviceName / js / serviceName.modelName.model.js // database model
+services / serviceName / js / serviceName.routes.js // routes
+
+services / serviceName / views / // views
+
+```
+
+
+### Flow
+
+Overall Entry point is `server.js`.
+It loads all services that are activitated by calling service(app, ...).
+That 'activates' the full stack of each service, including routes, views, and database.
+
+
+The giomap service
+
+- backend models to store maps ('mapCanvas') and map features ('mapdrawing')
+- routes to handle map creation, editing, and viewing
+
+
+The leafletIO service (part of giomap for now)
+
+- communicates map edits in real-time between clients and the server
+
+
+
+
+
+
+ser
+
+
 
 ## TO DO
 - add authentification (who can see which maps)
@@ -168,6 +226,11 @@ Feel free to contact me directly.
 - leafletIO and mapio name consistency
 - leafletIO to accept IO as input (client side)
 - more clarity regarding what depends on / contains what (i.e. having a reference to the global map object in giomap.io.map is confusing). 
+
+- files that are too large and should be split up into components:
+        - giomap.ejs
+        - createmap.ejs
+
 
 ## version history
 

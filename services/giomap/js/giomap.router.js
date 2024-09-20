@@ -1,3 +1,32 @@
+
+// NOTE: giomap router handles creating / editing / deleting the different maps.
+// Geometry sharing is all done withing leafletIO.js, not here.
+// please make sure leafletIO remains independent -treat it as a separate module that could go up on npm.
+
+// ROUTES:
+
+// DATA ROUTES
+
+// GET /giomap/list/json - get list of all maps in json format
+// GET /giomap/geojson - get all stored maps
+// GET /giomap/rawgeojson/:shareLinkId - get geojson for a specific map
+// GET /giomap/geojson/:shareLinkId - get geojson for a specific map
+// POST /giomap/create - create a new map
+// POST /giomap/update/:shareLinkId - update a map
+// DELETE /giomap/delete/:shareLinkId - delete a map
+
+// VIEW ROUTES
+
+// GET /giomap/list - get list of all maps
+// GET /giomap/shared/:shareLinkId - open a shared map
+// GET /giomap/edit/:shareLinkId - edit a map
+// GET /giomap/create - create a new map
+// GET /giomap/ - list all maps
+// GET /giomap/about - about page
+
+
+
+
 const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
