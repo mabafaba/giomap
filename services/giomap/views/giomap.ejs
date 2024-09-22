@@ -23,7 +23,7 @@
     
     <!-- giomap JS script -->
     <script src="../js/geoutils.js"></script>
-    <script src="../js/leafletIO.js"></script>
+    <script src="../leafletIO/leafletIOClient.js"></script>
     <script src="../js/components/TypologySelector.js"></script>
 
     <!-- giomap leaflet map -->
@@ -121,9 +121,9 @@
                 
                 // get typology geometry type in leafler draw format
                 var drawSettings = {
-                    'Point': giomap.io.controls[0].options.draw["circlemarker"],
-                    "Line": giomap.io.controls[0].options.draw["polyline"],
-                    "Polygon": giomap.io.controls[0].options.draw["polygon"]
+                    'Point': giomap.leafletIO.controls[0].options.draw["circlemarker"],
+                    "Line": giomap.leafletIO.controls[0].options.draw["polyline"],
+                    "Polygon": giomap.leafletIO.controls[0].options.draw["polygon"]
                 }
                 
                 var drawConstructors = {
@@ -142,7 +142,7 @@
                     e.layer.feature.properties.typology = typology;
                     giomap.map.off('draw:created', setTypology);
                     // safe feature to server now that typology is set
-                    giomap.io.setLayerForEveryone(e.layer);
+                    giomap.leafletIO.setLayerForEveryone(e.layer);
                 }
                 // add this listener
                 giomap.map.on('draw:created', setTypology);
@@ -187,12 +187,12 @@
                         // parse contents as json
                         var geojson = JSON.parse(contents);
                         // create layers from geojson features and add them to the editing layer
-                        // not included in mapio, so doing it manually here
+                        // not included in leafletIO, so doing it manually here
                         geojson.features.forEach(function(feature){
                             // add uuid to feature
                             feature.properties.uuid = crypto.randomUUID();
                             
-                            feature.properties.color = giomap.io.user.color;
+                            feature.properties.color = giomap.leafletIO.user.color;
 
                             // make sure Points are declared as circle markers
                             // add properties.markerType: "circle"
@@ -203,7 +203,7 @@
                             
                             // send to server 
                             giomap.io.socket.emit('iUploadedGeometriesFromFile!',
-                            {layer: feature, mapcanvasShareLinkId: giomap.io.mapCanvasShareLinkId}
+                            {layer: feature, mapcanvasShareLinkId: giomap.leafletIO.mapRoom, userId: giomap.leafletIO.user.id}
                             );
                         });
                         
@@ -224,8 +224,8 @@
             
             
             class BringEveryoneHereButton {
-                constructor(mapio, buttonParent){
-                    this.mapio = mapio;
+                constructor(leafletIO, buttonParent){
+                    this.leafletIO = leafletIO;
                     this.button = document.createElement('button');
                     buttonParent.appendChild(this.button);
                     this.button.style.boxShadow = "0px 0px 5px 0px rgba(0,0,0,0.75)";
@@ -233,7 +233,7 @@
                     this.button.style.backgroundColor = "cyan";
                     this.button.style.margin = "5px";
                     this.button.innerHTML = 'Set this view for everyone';
-                    this.button.onclick = this.mapio.bringEveryoneToMyView.bind(this.mapio);
+                    this.button.onclick = this.leafletIO.bringEveryoneToMyView.bind(this.leafletIO);
                 }
 
 
@@ -242,8 +242,8 @@
             }
 
             class HighlightForEveryoneButton {
-                constructor(mapio, buttonParent){
-                    this.mapio = mapio;
+                constructor(leafletIO, buttonParent){
+                    this.leafletIO = leafletIO;
                     this.createButton();
                     buttonParent.appendChild(this.button);
                 }
@@ -292,8 +292,8 @@
                 }
 
                 highlightHandler (e) {
-                            // mapio.highlightFeature(e.target);
-                           this.mapio.highlightLayerForEveryone(e.target);
+                            // leafletIO.highlightFeature(e.target);
+                           this.leafletIO.highlightLayerForEveryone(e.target);
                             this.stopSelectingLayerToHighlight();
                         };
 
@@ -302,32 +302,32 @@
                     this.buttonStyleWhilePickingLayerToHighlight();
 
                     // don't open any popups until selected
-                    this.mapio.disableEditing();
+                    this.leafletIO.disableEditing();
 
           
                     
-                    this.mapio.editingLayer.eachLayer((layer)=>{
+                    this.leafletIO.editingLayer.eachLayer((layer)=>{
                         layer.on('click', this.highlightHandler.bind(this));
                     });
 
                     // stop selecting layer to highlight when user clicks anywhere on map that is not a layer
-                    this.mapio.map.on('click', this.stopSelectingLayerToHighlight.bind(this));
+                    this.leafletIO.map.on('click', this.stopSelectingLayerToHighlight.bind(this));
 
                 }
 
                 stopSelectingLayerToHighlight(){
                     // reset button style
                     this.buttonDefaultStyle();
-                    this.mapio.editingLayer.eachLayer((layer)=>{
+                    this.leafletIO.editingLayer.eachLayer((layer)=>{
                         // list event listeners
                         layer.off('click');
                         // reinstate popup
 
                     });
-                    this.mapio.enableEditing();
+                    this.leafletIO.enableEditing();
 
                     // remove map click event listener
-                    // this.mapio.map.off('click', this.stopSelectingLayerToHighlight);
+                    // this.leafletIO.map.off('click', this.stopSelectingLayerToHighlight);
 
 
                     
@@ -345,8 +345,8 @@
                 user => {
 
                     if(user.username == giomap.metadata.createdBy.username){
-                        new HighlightForEveryoneButton(giomap.io, container);
-                        new BringEveryoneHereButton(giomap.io, container);
+                        new HighlightForEveryoneButton(giomap.leafletIO, container);
+                        new BringEveryoneHereButton(giomap.leafletIO, container);
                     }
 
                 });

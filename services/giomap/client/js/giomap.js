@@ -16,62 +16,57 @@ class Giomap {
         this.metadata = "havent called init yet";
         this.map = null;
         this.io = null;
+        this.leafletIO = null;
         this.typologies = null;
     }
     
-    init () {
+    async init () {
         
         // 1. fetch map metadata
         // 2. create map object
-        // 3. connect map to backend and other users (mapio)
-        // 3.1. 
-        return this.fetchMapMetaData(mapId)
-        .then((mapCanvas) => {
-            this.metadata = mapCanvas;
-            
-            this.map = L.map('map',{
-                zoomControl: false,
-                editable: true
-            }
-        );
+        // 3. connect map to backend and other users (leafletIO)
+
+        const mapCanvas = await this.fetchMapMetaData(mapId);
+        this.metadata = mapCanvas;
+        
+        this.map = L.map('map',{
+            zoomControl: false,
+            editable: true
+        });
         
         this.map.setView(mapCanvas.leafletView.center,
             mapCanvas.leafletView.zoom);
             
+        // add giomap typologies to map object
+        this.typologies = mapCanvas.typologies;
+        // add a regular grid overlay
+        this.#addGraticule(this.map);
+        // add base map tiles
+        this.#addBaseMapTiles(mapCanvas, this.map);
+        // add zoom control to map
+        L.control.zoom({
+            position: 'bottomright'
+        }).addTo(this.map);
+            
+            
+        // connect this map to the backend and to other users 
+        // this contains all the logic for editing the map and keeping users in sync.
+        // see leafletJS service for more details.
+        
+        // get the user
+        this.user = await fetch('../user/me')
 
-            
-            this.typologies = mapCanvas.typologies;
-            // add a regular grid overlay
-            this.#addGraticule(this.map);
-            // add base map tiles
-            this.#addBaseMapTiles(mapCanvas, this.map);
-            // add zoom control to map
-            L.control.zoom({
-                position: 'bottomright'
-            }).addTo(this.map);
-            
-            
-            // connect this map to the backend and to other users 
-            // this contains all the logic for editing the map and keeping users in sync.
-            // see ./mapio.js
-            // be aware: mapio is fairly entangled with the backend.
-
-
-            this.io = mapio(this.map, this.mapId);
-
-            // newFeature events must be handled by the giomap instance, as they come in through different channels
-            // (drawn by user, live received through socket.io, or downloaded from server on initial load)
-            this.io.on('newFeature', (layer) => {
-                this.addEditPropertiesPopupToLayer(layer);
-            });
-            
-            return this;
-            
-            
-        })
+        this.io = io({path:'/leafletio-socket-io'});
+        this.leafletIO = leafletIO(this.map, this.mapId, this.user.id, this.io);
+        
+        // newFeature events must be handled by the leafletIO instance, as they come in through different channels
+        // (drawn by user, live received through socket.io, or downloaded from server on initial load)
+        this.leafletIO.on('newFeature', (layer) => {
+            this.addEditPropertiesPopupToLayer(layer);
+        });
         
         
-        
+        return this;
         
     }
     
@@ -98,7 +93,7 @@ class Giomap {
             
             
             const submitPopupForm = (e) =>{
-
+                
                 e.preventDefault(); // prevent default submit action
                 e.stopImmediatePropagation(); // prevent other event listeners from firing
                 
@@ -119,7 +114,7 @@ class Giomap {
                     feature.properties.typology = typologySelector.selectedTypology();
                     // set custom properties based on form data
                     feature.properties.custom = typologySelector.data;
-                    giomap.io.setLayerForEveryone(somelayer);
+                    giomap.leafletIO.setLayerForEveryone(somelayer);
                 }
                 somelayer.closePopup();
                 
@@ -141,7 +136,7 @@ class Giomap {
                 );
             }
             
-    
+            
             // "created by" info (not editable)
             if(feature.properties.createdBy){
                 var createdByParagraph = document.createElement('p');
@@ -154,18 +149,18 @@ class Giomap {
                 // popupContainer.appendChild(document.createElement('br'));
                 
             }
-
+            
             // delete layer button. Not a submit button. It just deletes the layer straight away.
             //  div with boxicon bx bx-trash
-
+            
             //position:absolute;width:15px;right:5px;bottom:5px
             var deleteButton = document.createElement('div');
             deleteButton.style.position = "absolute";
             deleteButton.style.width = "15px";
             deleteButton.style.right = "5px";
             deleteButton.style.bottom = "5px";
-
-
+            
+            
             // deleteButton.innerHTML = '<a href="#" title="Delete layer" role="button" aria-label="Delete Layer" id="deleteLayer"><i class="bx bx-trash" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:red; margin: auto;"></i></a>';
             // instead, place in bottom right corner of popup
             deleteButton.innerHTML = '<a href="#" title="Delete layer" role="button" aria-label="Delete Layer" id="deleteLayer"><i class="bx bx-trash" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:black; margin: auto;"></i></a>';
@@ -174,22 +169,22 @@ class Giomap {
                 giomap.io.deleteLayerFromServer(somelayer);
                 somelayer.remove();
             }
-
-
-
-
+            
+            
+            
+            
             // build html
-             var popupContainer = document.createElement('div');
-             popupContainer.appendChild(typologySelector.html);
-             popupContainer.appendChild(typologySelector.typologyPropertiesForm.form);
-
-             if(feature.properties.createdBy){
-                 popupContainer.appendChild(createdByParagraph);
-                 popupContainer.appendChild(document.createElement('br'));
-                 popupContainer.appendChild(document.createElement('br'));
-             }
-             popupContainer.appendChild(deleteButton);
-
+            var popupContainer = document.createElement('div');
+            popupContainer.appendChild(typologySelector.html);
+            popupContainer.appendChild(typologySelector.typologyPropertiesForm.form);
+            
+            if(feature.properties.createdBy){
+                popupContainer.appendChild(createdByParagraph);
+                popupContainer.appendChild(document.createElement('br'));
+                popupContainer.appendChild(document.createElement('br'));
+            }
+            popupContainer.appendChild(deleteButton);
+            
             
             // append form to popup content
             somelayer.setPopupContent(popupContainer);
@@ -352,5 +347,12 @@ class Giomap {
         this.map.on('zoomend', updateGridControlButtonVisibility);
         
     }
+
+
+cleanShareLinkId (shareLinkId) {
+    // remove any non-alphanumeric characters
+    return shareLinkId.replace(/[^a-zA-Z0-9]/g, '');
+  }
+  
     
 }

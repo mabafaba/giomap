@@ -23,7 +23,7 @@ const geoJsonFeatureSchema = new mongoose.Schema({
             required: true
         },
         coordinates: {
-            type: [[Number]],
+            type: Array,
             required: true
         }
     },

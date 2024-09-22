@@ -209,7 +209,7 @@ ser
 
 ## TO DO
 - add authentification (who can see which maps)
-
+- move cleanSharelinkID from leafletIO service to giomap service
 
 ### Simplify Codebase
 

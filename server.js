@@ -16,13 +16,19 @@ if (process.argv.includes("devmode")){
 }
 
 
-// add giomap service 
 const server = http.createServer(app);
-const io = socketio(server,
-  {
-    path: '/giomap-socket-io'
-  });
+// add socket.io to server, with path /leafletIO-socket-io
+const io = socketio(server, {
+  path: '/leafletio-socket-io'
+});
+// test socket.io connection
+io.on("connection", (socket) => {
+  console.log("New WS Connection...");
+  socket.emit("message", "Welcome to the server");
+  socket.broadcast.emit("message", "A new user has joined");
+});
 
+// add giomap service 
 require("./services/giomap/js/giomap.server")(app, io);
 
 
@@ -37,6 +43,7 @@ require("./services/utils/logroutes")(app);
 app.get("/", (req, res) => {
   res.redirect("/giomap/list");
 });
+
 
 
 const PORT = process.env.PORT || 3000;

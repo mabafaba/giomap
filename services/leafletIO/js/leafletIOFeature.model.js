@@ -22,9 +22,7 @@ const leafletIOFeatureSchema = new mongoose.Schema({
     },
     
     createdBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
-        required: false,
+        type: String,
         default: null
     }
 });
