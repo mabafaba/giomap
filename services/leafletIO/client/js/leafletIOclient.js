@@ -1,19 +1,21 @@
-leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
+
+leafletIOclient = function(map, mapRoom, leafletIOEndpoint){
+    
+    // make sure socket.io is loaded in the browser
+    if(!io){
+        console.error('socket.io is not loaded. Make sure to include it in your project.');
+        return;
+    } 
     leafletIO = {
         map: map,
         mapRoom: mapRoom, // a string unique ID to create an 'obscure' url for the map
         editingLayer: null, // the leaflet layer object that the user is currently editing 
         layers: [], // array of leaflet layers that users can select and draw on
-        socket: socket,
+        // io on path leafletIO-socket-io (client side)
+        socket: io({path: "/leafletIO-socket-io"}),
         leafletIOEndpoint: leafletIOEndpoint,
         controls: [],
-        user: {
-            id: userID,
-            color: null
-        },
-        
-        
-        
+        drawingColor: null,
         // allow users to do map.io.on('newFeature', ...)
         // to add other events, add them to the events object
         // with the same structure as newFeature
@@ -45,6 +47,7 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
         },
         
         init: function (map) {
+            
             this.loadDependencies();
             // Initialise the FeatureGroup to store editable layers
                 // layer for editing:
@@ -52,38 +55,8 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                 this.editingLayer.addTo(map);
                 this.layers.push({layer:this.editingLayer, name: 'shared'});
                 this.editingLayer.addTo(map);
-            
-            const randomColor = (() => {
-                "use strict";
-                
-                const randomInt = (min, max) => {
-                    return Math.floor(Math.random() * (max - min + 1)) + min;
-                };
-                
-                return () => {
-                    var h = randomInt(0, 360);
-                    var s = 100;
-                    var l = randomInt(40, 90);
-                    return `hsl(${h},${s}%,${l}%)`;
-                };
-            })();
-            // check if there's already geometries by this user, if yes, use the color
-            var color = null;
-            this.editingLayer.eachLayer((layer)=>{
-                if(layer.feature.properties.createdBy.id == this.user.id){
-                    if(layer.feature.properties.color){
-                        color = layer.feature.properties.color;
-                        this.user.color = color;
-                        // stop loop
-                        return;
-                    }
-                }
-            });
-            if(!color){
-                color = randomColor();
-            }
-            this.changeDrawingColor(color);                    
-            
+
+            this.changeDrawingColor(this.drawingColor);                    
             this.addEditingControls(this.map);
             this.connectMapToServer(this.map, this.editingLayer);
             // resize window to make sure map is displayed correctly
@@ -131,16 +104,15 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
         });
         
         // Initialise the draw control and pass it the FeatureGroup of editable layers
-        // set all drawing options color to user color
-        // no fill!!!!
-        //  edit: {
-        // featureGroup: this.editingLayer
-        // }
+
         var drawControl = new L.Control.Draw({
             draw: {
+                circle: false,
+                rectangle: false,
+                marker: false,
                 polyline: {
                     shapeOptions: {
-                        color: this.user.color,
+                        color: this.drawingColor,
                         fill: false,
                         opacity: 1
                         
@@ -148,39 +120,21 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                 },
                 polygon: {
                     shapeOptions: {
-                        color: this.user.color,
+                        color: this.drawingColor,
                         // fill: true,
                         opacity: 1
                     }
                 },
-                // circle: {
-                //     shapeOptions: {
-                //         color: this.user.color,
-                //         fill: false
-                
-                //     }
-                // },
-                circle: false,
-                // rectangle: {
-                //     shapeOptions: {
-                //         color: this.user.color,
-                //         fill: false
-                
-                //     },
-                //     // remove marker from draw control
-                // },
-                rectangle: false,
                 circlemarker:
                 {
                     shapeOptions: {
-                        color: this.user.color,
+                        color: this.drawingColor,
                         fill: true,
                         opacity: 1,
                         fillOpacity: 1
                         
                     }
-                },
-                marker: false
+                }
             },
             edit: {
                 featureGroup: this.editingLayer
@@ -228,8 +182,7 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                         geojson.features.forEach((feature)=>{
                             // add uuid to feature
                             feature.properties.uuid = crypto.randomUUID();
-                            feature.properties.createdBy = this.user;
-                            feature.properties.color = this.user.color;
+                            feature.properties.color = this.drawingColor;
 
                             // make sure Points are declared as circle markers
                             // add properties.markerType: "circle"
@@ -240,7 +193,7 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                             
                             // send to server 
                             this.socket.emit('iUploadedGeometriesFromFile!',
-                            {layer: feature, mapRoom: this.mapRoom, userId: this.user.id}
+                            {layer: feature, mapRoom: this.mapRoom} // new geometry passed without uuid
                             );
                         });
                         }
@@ -279,7 +232,7 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
             this.socket.emit('joinMapRoom', {mapRoom:this.mapRoom});
             this.listenForIncomingEdits(map, editingLayer);
             this.sendOutgoingEdits(map, editingLayer);
-            this.addGeometriesFromServerToLayer(this.leafletIOEndpoint +"/raw/" +this.mapRoom, this.editingLayer);
+            this.addGeometriesFromServerToLayer(this.leafletIOEndpoint +"/geojson/" +this.mapRoom, this.editingLayer);
             this.listenForWorkshopHostInstructions();
             
         },
@@ -338,9 +291,7 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
         
         
         listenForIncomingEdits: function (map, editingLayer) {
-            this.socket.on('someoneMadeAGeometry!', (geojsonFeature)=>{
-                console.log('someoneMadeAGeometry!', geojsonFeature);
-                
+            this.socket.on('someoneMadeAGeometry!', (geojsonFeature)=>{                
                 
                 newLayer = this.GeoJsonToLayer(geojsonFeature);
                 
@@ -384,6 +335,12 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                 // Add the layer to the map
                 // receivedLayer.addTo(map);
             })
+
+            this.socket.on('someoneDeletedAllGeometries!', (json)=>{
+                console.log('someoneDeletedAllGeometries!');
+                this.editingLayer.clearLayers();
+            });
+
             
         },
         
@@ -395,10 +352,7 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                 
                 // add popup to layer
                 this.events.newFeature.fire(layer);
-                
-                // add user 
-                // layer.feature.properties.user = this.user;
-                // layerWithPopup.openPopup();
+                                // layerWithPopup.openPopup();
                 setTimeout(function(){layer.openPopup();}, 0); // waiting 0ms resolves the popup not opening when a rectangle is created by dragging instead of two clicks
                 this.editingLayer.addLayer(layer);
                 
@@ -459,9 +413,52 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                 console.log('notAuthorized', msg);
                 // show_prompt('Not logged in!', 'You need to be logged in to edit this map. <a href="giomap/user/login">Login</a> or <a href="giomap/user/register">register</a> to continue.',false, "OK");
             })
+
+            // cover map with a dark overlay if user has no active socket connection
+            // it should cover exactly the element holding the map / this.map
+            this.socket.on('disconnect', (reason)=>{
+                this.disconnectionOverlay(true);
+            });
+
+            // remove overlay if user has active socket connection
+            this.socket.on('connect', (reason)=>{
+                this.disconnectionOverlay(false);
+            });
             
             
         },
+
+        disconnectionOverlay: function (disconnected) {
+            if(!disconnected){
+                const overlay = document.getElementById('leafletIO-disconnected-overlay');
+                if(overlay){
+                    overlay.remove();
+                }
+            }else{
+                const overlay = document.createElement('div');
+                overlay.style.position = 'absolute';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.width = '100%';
+                overlay.style.height = '100%';
+                overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                overlay.style.zIndex = '1000';
+                overlay.style.display = 'flex';
+                overlay.style.justifyContent = 'center';
+                overlay.style.alignItems = 'center';
+                overlay.style.color = 'white';
+                overlay.style.fontSize = '2rem';
+                overlay.innerHTML = 'Connection lost. Please wait...';
+                overlay.id = 'leafletIO-disconnected-overlay';
+                // find the map div
+                const mapDiv = map.getContainer();
+                console.log('appending overlay', overlay, mapDiv);
+
+                mapDiv.appendChild(overlay);
+            }
+        },
+
+
         
         
         setLayerForEveryone: function(layer) {
@@ -471,32 +468,39 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
             feature.type = feature.type || "Feature";
             feature.properties = feature.properties || {};
             feature.properties.uuid = feature.properties.uuid || crypto.randomUUID();
-            console.log('this', this);
-            feature.properties.createdBy = this.user;
             
-            feature.properties.color = this.user.color;
+            feature.properties.color = this.drawingColor;
             feature.properties.opacity = 1;
             feature.properties.fill = true;
-            feature.properties.fillColor = this.user.color;
+            feature.properties.fillColor = this.drawingColor;
             feature.properties.fillOpacity = 1;
             // count how often setLayerForEveryone is called
-            feature.properties.setLayerForEveryoneCount = feature.properties.setLayerForEveryoneCount ? feature.properties.setLayerForEveryoneCount + 1 : 1;
             
             this.styleGeometry(layer);
-            console.log('iMadeAGeometry!', {"layer": this.LayerToGeoJson(layer), "mapRoom": mapRoom, "userId": this.user.id});
-            this.socket.emit('iMadeAGeometry!', {"layer": this.LayerToGeoJson(layer), "mapRoom": mapRoom, "userId": this.user.id});
+            this.socket.emit('iMadeAGeometry!', {"layer": this.LayerToGeoJson(layer), "mapRoom": mapRoom});
             
         },
         
         deleteLayerFromServer: function (layer) {
-            console.log('iDeletedAGeometry!', {layer:this.LayerToGeoJson(layer)});
             this.socket.emit('iDeletedAGeometry!', {layer:this.LayerToGeoJson(layer)});
+        },
+
+        deleteAllLayersFromServer: function () {
+            this.socket.emit('iDeletedAllGeometries!', {mapRoom: this.mapRoom});
         },
         
         addGeometriesFromServerToLayer: async function (endpoint, targetLayer) {
+            // asser that endpoint is a string
+            if(typeof endpoint !== 'string'){
+                console.error('endpoint passed to leafletIOclient must be a string');
+                return;
+            }
+            console.log('addGeometriesFromServerToLayer from ' + endpoint);
             fetch(endpoint)
             // check status
             .then(response => {
+                console.log(response, response);
+                
                 if (response.status !== 200) {
                     console.log('Looks like there was a problem. Status Code: ' +
                         response.status);
@@ -508,7 +512,7 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                 .then(response => response.json())
                 .then(data => {
                     // get feature from data 
-                    data = data.map(x=>x.feature);
+                    // data = data.features.map(x=>x.feature);
                     // add geojson to editingLayer
                     var geojsonLayer = this.GeoJsonToLayer(data);
                     
@@ -526,21 +530,7 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                             
                         });
                         
-                        // check if there's already a geometry by this user and if yes, copy color to this.user.color
-                        geojsonLayer.forEach((l)=>{
-                            console.log(l.feature.properties);
-                            if(l.feature.properties.createdBy && l.feature.properties.createdBy.id){
-                            
-                                if(l.feature.properties.createdBy.id == this.user.id){
-                                    if(l.feature.properties.color){
-                                        this.user.color = l.feature.properties.color;
-                                        // stop loop
-                                        return;
-                                    }
-                                    
-                                }   
-                            }
-                        });
+
                     
                     this.addEditingControls(this.map);
                     
@@ -549,7 +539,8 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                 
             },
             changeDrawingColor: function (color) {
-                this.user.color = color;
+                if(!color) return;
+                this.drawingColor = color;
                 // edit draw control options
                 this.addEditingControls(this.map);
                 
@@ -586,7 +577,6 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                 // make selected feature white
                 if(layer.setStyle){
                     layer.setStyle({
-                        weight: 5,
                         color: '#FF0000'
                     });
                 }
@@ -611,7 +601,7 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                 this.editingLayer.eachLayer(function (l) {
                     if(l.setStyle){
                         l.setStyle({color: l.feature.properties.color});
-                        l.setStyle({weight: l.feature.properties.weight ? l.feature.properties.weight : 2});
+                        // l.setStyle({weight: l.feature.properties.weight ? l.feature.properties.weight : 2});
                     }
                     // remove highlighted property (dont set to false, get rid)
                     delete l.feature.properties.highlighted;
@@ -639,6 +629,7 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
             },
             
             bringEveryoneToMyView: function () {
+                console.log('bringEveryoneToMyView');
                 
                 function getMapPerspective(map) {
                     const center = map.getCenter();
@@ -655,6 +646,13 @@ leafletIO = function(map, mapRoom, userID, leafletIOEndpoint, socket){
                     "mapRoom": this.mapRoom,
                     "mapView": mapView
                 });
+
+                // zoom out 1 step, then zoom back in, so user has visual feedback
+                const newZoom = this.map.getZoom() - 1;
+                this.map.flyTo(this.map.getCenter(), newZoom);
+                setTimeout(()=>{
+                    this.map.flyTo(this.map.getCenter(), newZoom + 1);
+                }, 1000);
             },
             
             

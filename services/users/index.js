@@ -1,32 +1,75 @@
 
+/**
+ * This file is responsible for handling user-related operations.
+ * It imports necessary modules and sets up the user application.
+ * 
+ * @module users
+ * @requires express
+ * @requires cookie-parser
+ * @requires path
+ * @requires ./js/users.authorize
+ * @requires ./js/users.authenticate
+ * @requires ./js/users.model
+ * @requires ./users.router
+ * 
+ * @typedef {Object} app - The user application.
+ * @property {Function} auth - authentication middlewear.
+ * @property {Function} authorizeAdmin - admin authorization middlewear.
+ * @property {Function} authorizeBasic - basic authorization middlewear.
+ * @property {Object} User - The User model.
+ * 
+ * @exports users
+ */
 // import users.server as server - here comes code:
 // import all other js files here so that they can be imported from a single file
 // rquire all other js files here so that they can be imported from a single file
 
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const path = require('path');
 
-const users = function(app, parentRoute){
-    const authorizeAdmin = require("./js/users.authorize").authorizeAdmin
-    const authorizeBasic = require("./js/users.authorize").authorizeBasic
-    const {loginUser, registerUser, updateUser, deleteUser, getAllUsers, getUser, createNewUser} = require("./js/users.authenticate");
-    const server = require("./js/users.server")(app, parentRoute)
-    const User = require("./js/users.model")
+const auth = require("./js/users.authorize").auth
+const authorizeAdmin = require("./js/users.authorize").authorizeAdmin
+const authorizeBasic = require("./js/users.authorize").authorizeBasic
+const authorizeToken = require("./js/users.authorize").authorizeToken
+const {loginUser, registerUser, updateUser, deleteUser, getAllUsers, getUser, createNewUser} = require("./js/users.authenticate");
+const User = require("./js/users.model")
     
-    const userIndex = {
-        authorizeAdmin, 
-        authorizeBasic,
-        loginUser,
-        registerUser,
-        createNewUser,
-        updateUser,
-        deleteUser,
-        getAllUsers,
-        getUser,
-        server, // server(app) to add routes, settinggs, views, etc to express app
-        User // User model
-    }
-    return userIndex;
-    
+
+
+
+// const connectDB = require("./users.db"); // not required if a db connection exists
+// connectDB(); 
+
+
+ 
+const userApp = express();
+const userRouter = require("./js/users.router");
+// add view folder to existing app view paths
+userApp.set("view engine", "ejs");
+let views = userApp.get('views');
+if (!Array.isArray(views)) views = [views];
+views.push(path.join(__dirname, './views'));
+userApp.set('views', views);
+
+userApp.use(express.json());
+userApp.use(cookieParser());
+userApp.use(userRouter);
+
+
+
+
+const user = {
+    app: userApp,
+    auth,
+    authorizeAdmin, 
+    authorizeBasic,
+    authorizeToken,
+    User
 }
+
+    
+
 // add all imports to export
-module.exports = users;
+module.exports = user;
 

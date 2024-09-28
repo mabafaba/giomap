@@ -191,8 +191,8 @@
                         geojson.features.forEach(function(feature){
                             // add uuid to feature
                             feature.properties.uuid = crypto.randomUUID();
-                            
-                            feature.properties.color = giomap.leafletIO.user.color;
+                            feature.properties.color = giomap.leafletIO.drawColor;
+                            feature.properties.username = giomap.user.username;
 
                             // make sure Points are declared as circle markers
                             // add properties.markerType: "circle"
@@ -202,8 +202,8 @@
                             
                             
                             // send to server 
-                            giomap.io.socket.emit('iUploadedGeometriesFromFile!',
-                            {layer: feature, mapcanvasShareLinkId: giomap.leafletIO.mapRoom, userId: giomap.leafletIO.user.id}
+                            giomap.leafletIO.socket.emit('iUploadedGeometriesFromFile!',
+                            {layer: feature, mapcanvasShareLinkId: giomap.leafletIO.mapRoom}
                             );
                         });
                         
@@ -293,6 +293,7 @@
 
                 highlightHandler (e) {
                             // leafletIO.highlightFeature(e.target);
+                            console.log('highlighting layer for everyone');
                            this.leafletIO.highlightLayerForEveryone(e.target);
                             this.stopSelectingLayerToHighlight();
                         };
@@ -322,6 +323,9 @@
                         // list event listeners
                         layer.off('click');
                         // reinstate popup
+                        layer.on('click', (e)=>{
+                            e.target.openPopup();
+                        });
 
                     });
                     this.leafletIO.enableEditing();

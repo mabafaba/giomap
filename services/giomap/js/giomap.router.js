@@ -1,38 +1,9 @@
-
-// NOTE: giomap router handles creating / editing / deleting the different maps.
-// Geometry sharing is all done withing leafletIO.js, not here.
-// please make sure leafletIO remains independent -treat it as a separate module that could go up on npm.
-
-// ROUTES:
-
-// DATA ROUTES
-
-// GET /giomap/list/json - get list of all maps in json format
-// GET /giomap/geojson - get all stored maps
-// GET /giomap/rawgeojson/:shareLinkId - get geojson for a specific map
-// GET /giomap/geojson/:shareLinkId - get geojson for a specific map
-// POST /giomap/create - create a new map
-// POST /giomap/update/:shareLinkId - update a map
-// DELETE /giomap/delete/:shareLinkId - delete a map
-
-// VIEW ROUTES
-
-// GET /giomap/list - get list of all maps
-// GET /giomap/shared/:shareLinkId - open a shared map
-// GET /giomap/edit/:shareLinkId - edit a map
-// GET /giomap/create - create a new map
-// GET /giomap/ - list all maps
-// GET /giomap/about - about page
-
-
-
-
 const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
 const MapCanvas = require('./mapcanvas.model');
-const mapdrawing = require('./mapdrawing.model');
-
+const LeafletIOFeature = require('../../leafletIO/js/leafletIOFeature.model');
+const User = require('../../users/js/users.model');
 
     const { authorizeBasic } = require('../../users/js/users.authorize')
 
@@ -43,102 +14,6 @@ const mapdrawing = require('./mapdrawing.model');
             res.redirect('/giomap/user/login');
         }
     }];
-
-    
-    router.route('/geojson')
-    .get(authorizeAndRedirect, async (req, res) => {
-        const giomapEntries = await mapdrawing.find();
-        res.send(giomapEntries);
-    });
-    
-    
-    router.route('/rawgeojson/:shareLinkId')
-    .get(authorizeAndRedirect, async (req, res) => {
-        // find corresponding mapcanvas
-        MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
-        .then((mapCanvas) => {
-            // if not found, dont handle this request
-            if (!mapCanvas) {
-                res.status(404).send('This map does not exist!');
-            }
-            return mapCanvas;
-        })
-        .then((mapCanvas) => {
-            return mapCanvas.populate('mapdrawings')
-        })
-        .then(async (mapCanvas) => {
-            // populate user details for all mapdrawings
-            // only keep user id and username
-            mapCanvas.mapdrawings = await mapdrawing.populate(mapCanvas.mapdrawings, { path: 'createdBy', select: 'i_d username' });
-            // copy user data to properties
-            geojson = mapCanvas.mapdrawings.map((mapdrawing) => {
-                // convert to object
-                mapdrawing = mapdrawing.toObject();
-                mapdrawing.feature.properties.createdBy = mapdrawing.createdBy;
-                mapdrawing.feature.properties._id = mapdrawing._id;
-                mapdrawing.feature.properties.mapCanvasId = mapdrawing.mapcanvas;
-                mapdrawing.feature.type = 'Feature';
-
-                // remove top level properties
-                delete mapdrawing.createdBy;
-                delete mapdrawing.mapcanvas;
-                delete mapdrawing._id;
-                return mapdrawing.feature;
-            });
-            // wrap into feature collection
-            featureCollection = {
-                type: 'FeatureCollection',
-                features: geojson
-            }
-            return featureCollection;
-            
-        })
-        .then((featureCollection) => {
-            res.send(featureCollection);
-        })
-        .catch((err) => {
-            console.log('Could not get GeoJSON', err);
-        });
-    }
-    );
-
-
-    router.route('/geojson/:shareLinkId')
-    .get(authorizeAndRedirect, async (req, res) => {
-        // find corresponding mapcanvas
-        MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
-        .then((mapCanvas) => {
-            // if not found, dont handle this request
-            if (!mapCanvas) {
-                res.status(404).send('This map does not exist!');
-            }
-            return mapCanvas;
-        })
-        .then((mapCanvas) => {
-            return mapCanvas.populate('mapdrawings')
-        })
-        .then(async (mapCanvas) => {
-            // populate user details for all mapdrawings
-            // only keep user id and username
-
-            mapCanvas.mapdrawings = await mapdrawing.populate(mapCanvas.mapdrawings, { path: 'createdBy', select: 'i_d username' });
-            // copy user data to properties
-            mapCanvas.mapdrawings.forEach((mapdrawing) => {
-                mapdrawing.feature.properties.createdBy = mapdrawing.createdBy;
-            });
-            return mapCanvas;
-            
-        })
-        .then((mapCanvas) => {
-            res.send(mapCanvas.mapdrawings);
-        })
-        .catch((err) => {
-            console.log('Could not get GeoJSON', err);
-        });
-    }
-    );
-
-
 
     
     router.route('/list')
@@ -178,8 +53,6 @@ const mapdrawing = require('./mapdrawing.model');
             if (!mapCanvas) {
                 res.status(404).send('This map does not exist!');
             }
-            // dont include map content, this is only for the map metadata
-            delete mapCanvas.mapdrawings;
 
             res.status(200).send(mapCanvas);
         })
@@ -194,7 +67,6 @@ const mapdrawing = require('./mapdrawing.model');
             description: req.body.description,
             createdBy: req.body.user.id,
             leafletView: req.body.leafletView,
-            giomapModels: [],
             shareLinkId: req.body.shareLinkId,
             typologies: req.body.typologies,
             backgroundMaps: req.body.backgroundMaps,
@@ -216,8 +88,7 @@ const mapdrawing = require('./mapdrawing.model');
     
     // 
     
-    
-    // 
+
     router.route('/shared/:shareLinkId')
     .get(authorizeAndRedirect, async (req, res, next) => {
         // not standard id, we're using shareLinkId instead (unguessable link)
@@ -274,8 +145,10 @@ const mapdrawing = require('./mapdrawing.model');
 
         // find map, check if user is creator
         // if not, return 401
+        LeafletIOFeature.deleteMany({ mapRoom: req.params.shareLinkId })
         
         mapcanvas = await MapCanvas.findOne({ shareLinkId: req.params.shareLinkId })
+        
         
         // if no user id, return 401
         if(!req.body.user.id){
@@ -328,5 +201,32 @@ const mapdrawing = require('./mapdrawing.model');
     });
     
 
+
+    // special user stuff
+
+    // set user drawing color
+    router.route('/drawingColor')
+    .post(authorizeAndRedirect, async (req, res) => {
+        console.log('setting drawing color');
+        console.log(req.body);
+        console.log(req.body.drawingColor);
+        // find user
+        
+        User.findById(req.body.user.id)
+        .then((user) => {
+            user.data = user.data ? user.data : {}; 
+            user.data.drawingColor = req.body.drawingColor;
+            user.save()
+        })    
+        .then((user) => {
+            res.status(200).send(user);
+        })
+        .catch((err) => {
+            console.log('Could not set drawing color', err);
+            res
+            .status(500)
+            .send(err);
+        })
+    });
 
 module.exports = router;

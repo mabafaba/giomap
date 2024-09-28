@@ -324,7 +324,7 @@ button {
   var url = window.location.href;
   var mapId = url.substring(url.lastIndexOf('/') + 1);
   // set download link
-  document.getElementById('nav-datadownload').querySelector('a').href =  "/giomap/rawgeojson/" + mapId;
+  document.getElementById('nav-datadownload').querySelector('a').href =  "/giomap/leafletIO/geojson/" + mapId;
   
   
   const page = <%- JSON.stringify(page) %>;

@@ -26,16 +26,10 @@
             maxZoom: 18,
         }).addTo(map);
 
-        const socket = io({
-            path: '/leafletio-socket-io',
-        }) 
-        var leafletIO = leafletIO(
+        var leafletIO = leafletIOclient(
             map,
-            'testMap2',
-            'testUser',
-            '/giomap/leafletIO',
-            socket
-
+            'testMap',
+            '/giomap/leafletIO'
         );
 
 

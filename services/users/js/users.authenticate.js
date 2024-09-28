@@ -2,6 +2,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const must = require("../../utils/must");
+const User = require("./users.model");
 require('dotenv').config();
 // JWT secret must be set in .env file in the root folder of the project
 const jwtSecret = process.env.JWT_SECRET;
@@ -16,7 +17,6 @@ if(!jwtSecret) {
  * @returns {void} 
  */
 const createNewUser = async (userinfo, UserModelExtension) => {
-  
   // make sure username and password are provided
   must(userinfo.username, "Username is required");
   must(userinfo.password, "Password is required");
@@ -30,12 +30,12 @@ const createNewUser = async (userinfo, UserModelExtension) => {
        
       //  must(Object.keys(userinfo).every(key => UserModelExtension.schema.obj[key]), "UserModelExtension must have all fields in userinfo")
   }
-
   const hash = await bcrypt.hash(userinfo.password, 10)
   const user = await User.create({
     username: userinfo.username,
       password: hash,
-      role: 'admin'
+      role: ['basic','admin'],
+      data: {}
     })
 
   await user.save();
@@ -85,7 +85,7 @@ const createNewUser = async (userinfo, UserModelExtension) => {
         })
         .catch((error) =>{
           res.status(400).json({
-            message: "User not successful created",
+            message: "User not successfully created",
             error: error.message,
           })
         }
@@ -209,8 +209,10 @@ const createNewUser = async (userinfo, UserModelExtension) => {
     if (!req.body.user) {
       return res.status(401).json({ message: "Not authorized" });
     }
+    console.log('req.body.user', req.body.user);
     await User.findById(req.body.user.id)
       .then((user) => {
+        console.log('user found', user);
         res.status(200).json(req.body.user);
       })
       .catch((err) =>

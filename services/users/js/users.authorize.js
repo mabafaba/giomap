@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const User = require("./users.model");
 require('dotenv').config();
 // const jwtSecret = "4715aed3c946f7b0a38e6b534a9583628d84e96d10fbc04700770d572af3dce43625dd";
 const jwtSecret = process.env.JWT_SECRET;
@@ -13,7 +14,14 @@ async function authorizeToken (token, allowedRoles = ["admin", "basic"]) {
   if (token) {
     try {
       const decodedToken = jwt.verify(token, jwtSecret);
-      if (allowedRoles.includes(decodedToken.role)) {
+      // if user role is an array:
+      if(Array.isArray(decodedToken.role)){
+        userHasOneOfAuthorizedRoles = allowedRoles.some(role => decodedToken.role.includes(role));
+      } else {
+        userHasOneOfAuthorizedRoles = allowedRoles.includes(decodedToken.role);
+      }
+
+      if (userHasOneOfAuthorizedRoles) {
         return {success: true, user: decodedToken};
       } else {
         return {success: false, user: null, message: "Not authorized, must be one of " + allowedRoles};
@@ -30,12 +38,18 @@ async function authorizeToken (token, allowedRoles = ["admin", "basic"]) {
 
 
 // generic auth function as middleware
+// expects req to contain:
+// req.cookies.jwt - token
+// req.authorizedRoles - array of roles that are allowed to access the route
+// adds to req.body:
+// req.body.authorized - true/false
+// req.body.user - decoded token or null
 function auth (req, res, next) {
   const token = req.cookies.jwt;
   
 
   if (token) {
-    jwt.verify(token, jwtSecret, (err, decodedToken) => {
+    jwt.verify(token, jwtSecret, async (err, decodedToken) => {
       if (err) {
         req.body.authorized = false;
         req.body.user = null;
@@ -45,9 +59,21 @@ function auth (req, res, next) {
         return;
 
       } else {
-        // is role in array of authorized roles?
-        if (req.authorizedRoles.includes(decodedToken.role)) {
+        // is any user role in array of authorized roles?
+        // if user role is an array:
+        if(Array.isArray(decodedToken.role)){
+        userHasOneOfAuthorizedRoles = req.authorizedRoles.some(role => decodedToken.role.includes(role));
+        } else {
+          userHasOneOfAuthorizedRoles = req.authorizedRoles.includes(decodedToken.role);
+        }
+
+        if (userHasOneOfAuthorizedRoles) {
+          console.log('decodedToken', decodedToken);
+          // get .data from user if it exists
+          
           req.body.user = decodedToken;
+          userData = await User.findById(decodedToken.id)
+          if(userData){req.body.user.data = userData.data;}
           req.body.authorized = true;
           next();
           return;
@@ -85,4 +111,4 @@ function authorizeBasic (req, res, next) {
 
 
 // export as single object
-module.exports = { authorizeToken, authorizeAdmin, authorizeBasic };
+module.exports = { authorizeToken, authorizeAdmin, authorizeBasic, auth };

@@ -19,11 +19,6 @@ const leafletIOFeatureSchema = new mongoose.Schema({
     uuid: {
         type: String,
         required: true
-    },
-    
-    createdBy: {
-        type: String,
-        default: null
     }
 });
 

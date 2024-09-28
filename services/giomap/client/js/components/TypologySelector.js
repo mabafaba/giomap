@@ -100,9 +100,9 @@ class TypologyPropertiesForm {
         this.form = null;
         this.onsubmit = onsubmit;
         this.createFormStructure();
-        
+        console.log("TypologyPropertiesForm constructor", typology, data);
         if(typology){
-            this.typology = typology;
+            this.updateTypology(typology);
         }
         
         if(typology && data){
@@ -162,11 +162,12 @@ class TypologyPropertiesForm {
     }
     
     updatePropertyInputFields(typology) {
-        this.typologyPropertiesFormGroup.innerHTML = "";
+        console.log("updatePropertyInputFields", typology);
         if(!typology){
             this.typology = null;
             return;
         }
+        this.typologyPropertiesFormGroup.innerHTML = "";
         
         typology.properties.forEach((field) => {
             var fieldLabel = document.createElement('label');
@@ -242,7 +243,12 @@ class TypologyPropertiesForm {
             console.warn("no data to update form with");
             return;
         }
-        
+
+        if(!this.typology){
+            console.error("can't set property value without typology");
+            return;
+        }
+
         Object.keys(data).forEach((key) => {
             if (!this.typology.properties.find((field) => field.name === key)) {
                 console.warn(`Unknown field ${key} in data, value:`, data[key]);
@@ -251,10 +257,7 @@ class TypologyPropertiesForm {
         
         
         
-        if(!this.typology){
-            console.error("can't set property value without typology");
-            return;
-        }
+
         
         
         this.typology.properties.forEach((field) => {
@@ -267,6 +270,8 @@ class TypologyPropertiesForm {
     }
     get data() {
         // error if no typology
+        console.log("get data", this.typology);
+        console.log('this', this);
         if(!this.typology){
             // warn
             console.warn("no typology set, returning empty object");

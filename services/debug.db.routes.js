@@ -2,10 +2,10 @@
 // It includes routes for dropping users, retrieving all users, and dropping giomap entries.
 // Should never be included in production!
 
-const {mapdrawing} = require("./giomap")
-const {MapCanvas} = require("./giomap")
-
-
+const {MapCanvas} = require("./giomap/js/mapcanvas.model");
+const LeafletIO = require("./leafletIO");
+const LeafletIOFeature = require("./leafletIO/js/leafletIOFeature.model");
+const {User} = require("./users");
 // log a bright red warning to the console that vulnerable routes are active
 console.log('\x1b[31m%s\x1b[0m', 'WARNING: VULNERABLE DEBUG ROUTES ACTIVE! - ANYONE CAN DELETE THE DATABASES!');
 // in yellow, how to remove these routes
@@ -27,7 +27,7 @@ module.exports = function(app){
     
     // delete all giomap entries
     app.get('/debug/delete/maps', async function(req, res){
-        await mapdrawing.collection.drop();
+        await LeafletIOFeature.collection.drop();
         await MapCanvas.collection.drop();
         res.send("giomap entries dropped!")
     });
@@ -36,7 +36,7 @@ module.exports = function(app){
 
     // delete specific map
     app.get('/debug/delete/map/:id', async function(req, res){
-        await mapdrawing.findByIdAndDelete(req.params.id);
+        deleted = await LeafletIOFeature.deleteMany({mapRoom:req.params.id});
         res.send("giomap entry dropped!")
     });
     

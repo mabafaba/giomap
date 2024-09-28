@@ -29,7 +29,12 @@
             <!-- using nice plus icon -->
             
 
-            
+            <div id="addbuttonlistitem" class="maplistitem" >
+                <!-- large round div with plus icon floating in center to go to create page -->
+                <div id="createMapButton" onclick="window.location.href = '/giomap/create'">
+                    <i class='bx bx-plus' style="font-size: 40px;"></i>
+                </div>
+            </div>
             <template x-for="map in maps">
                 <div class="maplistitem" >
                     
@@ -47,12 +52,7 @@
                 </div>
             </template>
 
-            <div id="addbuttonlistitem" class="maplistitem" >
-                <!-- large round div with plus icon floating in center to go to create page -->
-                <div id="createMapButton" onclick="window.location.href = '/giomap/create'">
-                    <i class='bx bx-plus' style="font-size: 40px;"></i>
-                </div>
-            </div>
+
 
         </div>
     </div>
@@ -164,6 +164,8 @@ document.addEventListener('alpine:init', () => {
             .then(response => response.json())
             .then(data => {
                 this.maps = data;
+                // reverese order so newest maps are at top
+                this.maps.reverse();
             })
             .catch(err => console.log(err));
 

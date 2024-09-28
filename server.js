@@ -1,45 +1,28 @@
 const path = require("path");
 const http = require("http");
 const express = require("express");
-const socketio = require("socket.io");
 const mongoose = require("./services/db/db")
+const userService = require("./services/users");
+const giomapService = require("./services/giomap");
+
+
+// initialize express/sockets
 const app = express();
+const server = http.createServer(app);
+// io on path /leafletIO-socket-io
+const io = require("socket.io")(server, {path: "/leafletIO-socket-io"});
 app.use(express.json())
 
-// add user management service
-users = require("./services/users")(app, "/giomap");
-// users.server(app, "/giomap");
+// mout services
+app.use("/giomap/", giomapService(io));
+app.use('/giomap/user/',userService.app);
 
-// add debugging routes only in devmode
-if (process.argv.includes("devmode")){
-  require("./services/debug.db.routes")(app)
-}
+const debug = require("./services/debug.db.routes")(app);
 
-
-const server = http.createServer(app);
-// add socket.io to server, with path /leafletIO-socket-io
-const io = socketio(server, {
-  path: '/leafletio-socket-io'
-});
-// test socket.io connection
-io.on("connection", (socket) => {
-  console.log("New WS Connection...");
-  socket.emit("message", "Welcome to the server");
-  socket.broadcast.emit("message", "A new user has joined");
-});
-
-// add giomap service 
-require("./services/giomap/js/giomap.server")(app, io);
-
-
-
-// Set static folder
+// mount public folder
 app.use(express.static(path.join(__dirname, "public")));
 
-// log all existing routes to server cosole
-require("./services/utils/logroutes")(app);
-
-// redirect root route to /giomap/list
+// redirect root to /giomap/list
 app.get("/", (req, res) => {
   res.redirect("/giomap/list");
 });

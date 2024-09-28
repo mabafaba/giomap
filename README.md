@@ -154,6 +154,14 @@ Feel free to contact me directly.
 
 The whole application is divided into services. Each service is responsible for a specific part of the application.
 
+
+### Dependency Hierarchy
+
+- server.js
+        - giomap service
+                - leafletIO service
+                - user service 
+
 ### Services
 
 - user: handles user authentication and authorization

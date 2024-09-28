@@ -68,11 +68,6 @@ const mapCanvasSchema = new mongoose.Schema({
             ]
         }
     ],
-  
-    mapdrawings: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'mapdrawing'
-    }],
     shareLinkId: {
         type: String,
         required: false
