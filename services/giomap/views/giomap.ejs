@@ -351,6 +351,19 @@
                     if(user.username == giomap.metadata.createdBy.username){
                         new HighlightForEveryoneButton(giomap.leafletIO, container);
                         new BringEveryoneHereButton(giomap.leafletIO, container);
+                        // // // add button to wipe map
+                        // // var wipeMapButton = document.createElement('button');
+                        // // wipeMapButton.innerHTML = 'Delete all geometries';
+                        // // wipeMapButton.style.margin = "5px";
+                        // // wipeMapButton.style.boxShadow = "0px 0px 5px 0px rgba(0,0,0,0.75)";
+                        // // wipeMapButton.style.borderRadius = "20px";
+                        // // wipeMapButton.style.backgroundColor = "red";
+                        // // wipeMapButton.onclick = function(){
+                        // //     show_prompt('Are you sure?', 'This will delete all geometries on the map. This action cannot be undone.', true, 'Yes', 'No', function(){
+                        // //         giomap.leafletIO.deleteAllLayersFromServer;
+                        // //     });
+                        // // }
+                        container.appendChild(wipeMapButton);
                     }
 
                 });
