@@ -65,7 +65,7 @@ class Giomap {
                 layer.feature = layer.feature ? layer.feature : {};
                 layer.feature.properties = layer.feature.properties ? layer.feature.properties : {};
                 layer.feature.properties.username = layer.feature.properties.username ? layer.feature.properties.username : this.user.username;
-                layer.feature.properties.color = layer.feature.properties.color ? layer.feature.properties.color : this.user.drawingColor;
+                layer.feature.properties.color = layer.feature.properties.color ? layer.feature.properties.color : this.user.data.drawingColor;
                 this.addEditPropertiesPopupToLayer(layer);
             });
             
@@ -85,11 +85,7 @@ class Giomap {
                 console.log('got user', user);
                 // if the user already has a drawing color, set it
                 if(this.user && this.user.data && this.user.data.drawingColor){
-                    this.leafletIO.changeDrawingColor(this.user.drawingColor);
-                    return;
-                }
-                if(this.user && this.user.drawingColor){
-                    this.leafletIO.changeDrawingColor(this.user.drawingColor);
+                    this.leafletIO.changeDrawingColor(this.user.data.drawingColor);
                     return;
                 }
                 
@@ -104,7 +100,7 @@ class Giomap {
                 const random_color_l = randomInt(40, 90);
                 const random_color = `hsl(${random_color_h},${random_color_s}%,${random_color_l}%)`
                 
-                this.user.drawingColor = random_color;
+                this.user.data.drawingColor = random_color;
                 this.leafletIO.changeDrawingColor(random_color);
                 
                 // post random_color as d color to server
