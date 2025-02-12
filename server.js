@@ -17,7 +17,9 @@ app.use(express.json())
 app.use("/giomap/", giomapService(io));
 app.use('/giomap/user/',userService.app);
 
-const debug = require("./services/debug.db.routes")(app);
+
+// DONT USE IN PRODUCTION: debug routes (ALLOWS TO SEE AND DELETE ALL DATA VIA SIMPLE ENDPOINTS)
+// const debug = require("./services/debug.db.routes")(app);
 
 // mount public folder
 app.use(express.static(path.join(__dirname, "public")));

@@ -88,6 +88,10 @@ class Giomap {
                     this.leafletIO.changeDrawingColor(this.user.drawingColor);
                     return;
                 }
+                if(this.user && this.user.drawingColor){
+                    this.leafletIO.changeDrawingColor(this.user.drawingColor);
+                    return;
+                }
                 
                 console.log('user has no drawing color');
                 // if not, assign a random color
