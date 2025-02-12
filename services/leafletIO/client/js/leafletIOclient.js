@@ -11,8 +11,8 @@ leafletIOclient = function(map, mapRoom, leafletIOEndpoint){
         mapRoom: mapRoom, // a string unique ID to create an 'obscure' url for the map
         editingLayer: null, // the leaflet layer object that the user is currently editing 
         layers: [], // array of leaflet layers that users can select and draw on
-        // io on path leafletIO-socket-io (client side)
-        socket: io({path: "/leafletIO-socket-io"}),
+        // io on path giomap-socket-io (client side)
+        socket: io({path: "/giomap-socket-io"}),
         leafletIOEndpoint: leafletIOEndpoint,
         controls: [],
         drawingColor: null,

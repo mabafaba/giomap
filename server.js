@@ -9,7 +9,7 @@ const giomapService = require("./services/giomap");
 // initialize express/sockets
 const app = express();
 const server = http.createServer(app);
-// io on path /leafletIO-socket-io
+// io on path /giomap-socket-io
 const io = require("socket.io")(server, {path: "/giomap-socket-io"});
 app.use(express.json())
 
