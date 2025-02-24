@@ -103,7 +103,7 @@ Example with NGINX below.
 
 ```
 location /giomap {
-        proxy_pass http://localhost:3000/giomap;
+        proxy_pass http://localhost:6100/giomap;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -112,13 +112,15 @@ location /giomap {
 }
 
 location /giomap-socket-io {
-        proxy_pass http://localhost:3000/giomap-socket-io;
+        proxy_pass http://localhost:6100/giomap-socket-io;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
         proxy_cache_bypass $http_upgrade;
 }
+
+
 
 
 ```

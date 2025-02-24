@@ -145,6 +145,13 @@ class Giomap {
             
             somelayer.bindPopup();
             somelayer.on('popupopen', function(e) {
+                console.log(somelayer);
+                // if clicked on a polygon, set fill color, if its a polygon and not a line or point
+                if(somelayer.feature.properties.color){
+                    somelayer.setStyle({
+                        fillColor: somelayer.feature.properties.color
+                    });
+                }
                 
                 
                 
@@ -152,6 +159,13 @@ class Giomap {
                     
                     e.preventDefault(); // prevent default submit action
                     e.stopImmediatePropagation(); // prevent other event listeners from firing
+
+                    // if its a polygon, remove fill color
+                    if(somelayer.feature.geometry.type == "Polygon"){
+                        somelayer.setStyle({
+                            fillColor: "transparent"
+                        });
+                    }
                     
                     // if cancel button was clicked, close popup and return 
                     if(e.submitter.value=="cancel"){
