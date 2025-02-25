@@ -170,6 +170,8 @@ class TypologyPropertiesForm {
         this.typologyPropertiesFormGroup.innerHTML = "";
         
         typology.properties.forEach((field) => {
+            console.log('field',field);
+
             var fieldLabel = document.createElement('label');
             fieldLabel.for = field.name;
             fieldLabel.innerHTML = field.name;
@@ -212,6 +214,89 @@ class TypologyPropertiesForm {
                 
                 this.typologyPropertiesFormGroup.appendChild(fieldSelect);
             }
+
+            if(field.type === 'youtube'){
+                console.log('adding youtube field');
+                var videoInput = document.createElement('input');
+                videoInput.name = field.name;
+                videoInput.placeholder = 'Enter YouTube link';
+                videoInput.style.width = "100%";
+                videoInput.style.marginBottom = "10px";
+                this.typologyPropertiesFormGroup.appendChild(videoInput);
+
+                var videoEmbed = document.createElement('iframe');
+                videoEmbed.id = `${field.name}_embed`;
+                videoEmbed.style.width = "100%";
+                videoEmbed.style.height = "315px";
+                videoEmbed.style.marginBottom = "10px";
+                videoEmbed.frameBorder = "0";
+                videoEmbed.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                videoEmbed.allowFullscreen = true;
+                videoEmbed.style.display = 'none';
+                this.typologyPropertiesFormGroup.appendChild(videoEmbed);
+
+                videoInput.addEventListener('input', (e) => {
+                    var url = e.target.value;
+                    var embedUrl = validateYoutubeURL(url);
+                    if (embedUrl) {
+                        console.log('EMBEDURL', embedUrl);
+                        videoEmbed.src = embedUrl;
+                        // set to visible
+                        videoEmbed.style.display = 'block';
+                    } else {
+                        videoEmbed.src = '';
+                        // hide iframe
+                        videoEmbed.style.display = 'none';
+                    }
+                });
+            }
+
+            if (field.type === 'soundcloud') {
+                
+
+                var soundcloudInput = document.createElement('input');
+                
+                soundcloudInput.name = field.name;
+                soundcloudInput.placeholder = 'Enter SoundCloud link';
+                soundcloudInput.style.width = "100%";
+                soundcloudInput.style.marginBottom = "10px";
+                this.typologyPropertiesFormGroup.appendChild(soundcloudInput);
+
+                var soundcloudEmbed = document.createElement('iframe');
+                var url = soundcloudInput.value;
+
+
+                    var embedUrl = validateSoundCloudURL(url);
+                    if (embedUrl) {
+                        soundcloudEmbed.src = embedUrl;
+                        soundcloudEmbed.style.display = 'block';
+                    } else {
+                        soundcloudEmbed.src = '';
+                        soundcloudEmbed.style.display = 'none';
+
+                    }
+                soundcloudEmbed.id = `${field.name}_embed`;
+                soundcloudEmbed.style.width = "100%";
+                soundcloudEmbed.style.height = "166px";
+                soundcloudEmbed.style.marginBottom = "10px";
+                soundcloudEmbed.frameBorder = "0";
+                soundcloudEmbed.allow = "autoplay";
+                this.typologyPropertiesFormGroup.appendChild(soundcloudEmbed);
+
+                soundcloudInput.addEventListener('input', (e) => {
+                    var url = e.target.value;
+                    var embedUrl = validateSoundCloudURL(url);
+                    if (embedUrl) {
+                        console.log('setting src', embedUrl);
+                        soundcloudEmbed.src = embedUrl;
+                        soundcloudEmbed.style.display = 'block';
+                    } else {
+                        console.log('hiding soundcloud');
+                        soundcloudEmbed.src = '';
+                        soundcloudEmbed.style.display = 'none';
+                    }
+                });
+            }
             
             this.typologyPropertiesFormGroup.appendChild(document.createElement('br'));
         });
@@ -224,7 +309,7 @@ class TypologyPropertiesForm {
         }
         // warn if unknown fields are present
         if (!this.typology.properties.find((f) => f.name === field.name)) {
-            console.warn(`Unknown field ${field.name} in data, value:`, value);
+            console.warn(`Unknown field ${field.name} in data, value: ${value}`);
         }
         if (field.type === 'text') {
             var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
@@ -233,6 +318,43 @@ class TypologyPropertiesForm {
         if (field.type === 'categorical') {
             var select = this.typologyPropertiesFormGroup.querySelector(`select[name="${field.name}"]`);
             select.value = value;
+        }
+
+        if (field.type === 'youtube') {
+            var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
+            input.value = value;
+            embedUrl = validateYoutubeURL(value);
+            if(embedUrl){
+                console.log('showing youtube', embedUrl);
+            var youtubeEmbed = this.typologyPropertiesFormGroup.querySelector(`iframe[id="${field.name}_embed"]`);
+            console.log('youtubeEmbed', youtubeEmbed);
+            console.log('setting display block');
+            youtubeEmbed.style.display = 'block';
+            console.log('setting src', embedUrl);
+            youtubeEmbed.src = embedUrl;
+            } else {
+                // hide iframe
+                console.log('hiding youtube');
+                
+
+                var youtubeEmbed = this.typologyPropertiesFormGroup.querySelector(`iframe[id="${field.name}_embed"]`);
+                youtubeEmbed.src = '';
+                youtubeEmbed.style.display = 'none';
+            }
+        }
+
+        if (field.type === 'soundcloud') {
+            var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
+            input.value = value;
+            var embedUrl = validateSoundCloudURL(value);
+            var soundcloudEmbed = this.typologyPropertiesFormGroup.querySelector(`iframe[id="${field.name}_embed"]`);
+            if (embedUrl) {
+                soundcloudEmbed.src = embedUrl;
+                soundcloudEmbed.style.display = 'block';
+            } else {
+                soundcloudEmbed.src = '';
+                soundcloudEmbed.style.display = 'none';
+            }
         }
     }
     
@@ -251,13 +373,10 @@ class TypologyPropertiesForm {
 
         Object.keys(data).forEach((key) => {
             if (!this.typology.properties.find((field) => field.name === key)) {
-                console.warn(`Unknown field ${key} in data, value:`, data[key]);
+                console.warn("Unknown field " + key + " in data, value", data[key]);
             }
         });
         
-        
-        
-
         
         
         this.typology.properties.forEach((field) => {
@@ -289,7 +408,43 @@ class TypologyPropertiesForm {
                 var select = this.typologyPropertiesFormGroup.querySelector(`select[name="${field.name}"]`);
                 data[field.name] = select.value;
             }
+
+            if (field.type === 'youtube') {
+                var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
+                data[field.name] = input.value;
+            }
+            if (field.type === 'soundcloud') {
+                var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
+                data[field.name] = input.value;
+            }
         });
         return data;
     }
+}
+
+
+function validateYoutubeURL(url) {    
+    if (url != undefined || url != '') {
+        var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\?v=)([^#\&\?]*).*/;
+        var match = url.match(regExp);
+        if (match && match[2].length == 11) {
+            return( 'https://www.youtube.com/embed/' + match[2] + '?autoplay=0');
+        } else {
+            return false;
+        }
+    }
+    return false;
+}
+
+function validateSoundCloudURL(url) {
+    if (url != undefined || url != '') {
+        var regExp = /^https?:\/\/(soundcloud\.com|snd\.sc)\/(.*)$/;
+        var match = url.match(regExp);
+        if (match) {
+            return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true`;
+        } else {
+            return false;
+        }
+    }
+    return false;
 }

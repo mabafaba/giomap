@@ -124,7 +124,8 @@ class Giomap {
         }
         
         
-        addEditPropertiesPopupToLayer (somelayer){   
+        addEditPropertiesPopupToLayer (somelayer){
+            console.log('adding edit prop popup');   
             // parameter called "someLayer" because scope is a little confusing here.   
             
             // this whole portion is a bit convoluted:
@@ -160,12 +161,12 @@ class Giomap {
                     e.preventDefault(); // prevent default submit action
                     e.stopImmediatePropagation(); // prevent other event listeners from firing
 
-                    // if its a polygon, remove fill color
-                    if(somelayer.feature.geometry.type == "Polygon"){
-                        somelayer.setStyle({
-                            fillColor: "transparent"
-                        });
-                    }
+                    // if its not a point 
+                    
+                    somelayer.setStyle({
+                        fillColor: "transparent"
+                    });
+                
                     
                     // if cancel button was clicked, close popup and return 
                     if(e.submitter.value=="cancel"){

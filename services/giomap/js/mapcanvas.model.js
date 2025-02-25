@@ -57,7 +57,7 @@ const mapCanvasSchema = new mongoose.Schema({
                 type: { // must be 'categorical' or 'text'
                     type: String,
                     required: true,
-                    enum: ['categorical', 'text']
+                    enum: ['categorical', 'text','youtube','soundcloud']
                 },
                 // additional information for categorical fields. required when type is 'categorical'
                 categoricalValues: {

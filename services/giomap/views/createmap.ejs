@@ -47,6 +47,7 @@
                         <!-- button to add custom geo items -->
                         <button type="button" onclick="addCustomGeoItem()">+</button>
                         
+                            
                         <br>
                         <br>
                         <br>
@@ -176,7 +177,7 @@
                 const description = formData.get('description');
                 // get map view
                 const mapView = getMapPerspective();
-                
+                console.log(formData);
                 // geometry property fields
                 var typologies = [];
                 // get all custom geo items
@@ -208,6 +209,25 @@
                         delete field.values;
                         return field;
                     });
+
+                    // add youtube to customFeatureFields if checked.
+                    const youtubeChecked = customGeoItems[i].youtubeCheckbox.checked;
+                    if(youtubeChecked){
+                        youtubeTypologyField = {
+                            type: 'youtube',
+                            name: 'Youtube link',
+                        }
+                        customFeatureFields.push(youtubeTypologyField);
+                    }
+                    // add soundcloud to customFeatureFields if checked
+                    const soundcloudChecked = customGeoItems[i].soundcloudCheckbox.checked;
+                    if(soundcloudChecked){
+                        soundcloudTypologyField = {
+                            type: 'soundcloud',
+                            name: 'Soundcloud link',
+                        }
+                        customFeatureFields.push(soundcloudTypologyField);
+                    }
                     
                     // add to geometry property fields
                     typologies.push({
@@ -218,6 +238,10 @@
                     
                     
                 }
+
+
+                console.log(typologies);
+
                 // array with names of selected background maps
                 var backgroundMaps = [];
                 ['osm', 'googleHybrid', 'googleSatellite', 'googleMap'].forEach(map => {
@@ -250,7 +274,8 @@
                         issues.push('Typologies must have at least one named data field.');
                     }
                 })
-                
+      
+
                 // check if there are duplicate typology names
                 
                 var typologyNames = typologies.map(typology => typology.name);
@@ -443,6 +468,32 @@
                 
                 container.appendChild(tableTagsContainer);
                 
+                var youtubeCheckbox = document.createElement('input');
+                youtubeCheckbox.type = 'checkbox';
+                youtubeCheckbox.id = 'youtube';
+                youtubeCheckbox.name = 'youtube';
+                youtubeCheckbox.value = 'youtube';
+                var youtubeLabel = document.createElement('label');
+                youtubeLabel.htmlFor = 'youtube';
+                youtubeLabel.style.display = 'inline';
+                youtubeLabel.innerHTML = 'Youtube link';
+                container.appendChild(youtubeCheckbox);
+                container.appendChild(youtubeLabel);
+                container.appendChild(document.createElement('br'));
+
+                var soundcloudCheckbox = document.createElement('input');
+                soundcloudCheckbox.type = 'checkbox';
+                soundcloudCheckbox.id = 'soundcloud';
+                soundcloudCheckbox.name = 'soundcloud';
+                soundcloudCheckbox.value = 'soundcloud';
+                var soundcloudLabel = document.createElement('label');
+                soundcloudLabel.htmlFor = 'soundcloud';
+                soundcloudLabel.style.display = 'inline';
+                soundcloudLabel.innerHTML = 'Soundcloud link';
+                container.appendChild(soundcloudCheckbox);
+                container.appendChild(soundcloudLabel);
+                container.appendChild(document.createElement('br'));
+
                 // create button to remove custom geo item
                 var removeButton = document.createElement('button');
                 // overwrite deafult "submit" behaviour
@@ -472,7 +523,9 @@
                     container: container,
                     nameInput: nameInput,
                     geometryTypeInput: geometryTypeSelect,
-                    customFeatureInput: tableTags
+                    customFeatureInput: tableTags,
+                    youtubeCheckbox: youtubeCheckbox,
+                    soundcloudCheckbox: soundcloudCheckbox
                 });
                 // add container to customGeoItems div
                 document.getElementById('customGeoItems').appendChild(container);
