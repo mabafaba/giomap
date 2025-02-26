@@ -66,6 +66,13 @@
                         <input type="checkbox" id="googleSatellite" name="googleSatellite" value="googleSatellite" checked> <label for="googleSatellite" style="display:inline">Google Satellite Image</label><br>
                         <input type="checkbox" id="googleMap" name="googleMap" value="googleMap"> <label for="googleMap" style="display:inline">Standard Google Map</label><br>
                         <br>
+                        <!-- radio button edit features on popup / sidebar -->
+                        <label for="editFeatures">Edit Features</label>
+                        <br>
+                        <input type="radio" id="editFeaturesPopup" name="editFeatures" value="popup" checked> <label for="editFeaturesPopup" style="display:inline">Popup</label><br>
+                        <input type="radio" id="editFeaturesSidebar" name="editFeatures" value="sidebar"> <label for="editFeaturesSidebar" style="display:inline">Sidebar</label><br>
+                        <br>
+
                         <!-- table with two columns for language picker -->
                         
                         <table style="width: 100%">
@@ -228,6 +235,15 @@
                         }
                         customFeatureFields.push(soundcloudTypologyField);
                     }
+
+                    const imageChecked = customGeoItems[i].imageCheckbox.checked;
+                    if(imageChecked){
+                        imageTypologyField = {
+                            type: 'image',
+                            name: 'image',
+                        }
+                        customFeatureFields.push(imageTypologyField);
+                    }
                     
                     // add to geometry property fields
                     typologies.push({
@@ -252,6 +268,7 @@
                 
                 const preferredMapLanguage = document.getElementById('googleMapLanguage').value;
                 
+                const sidebar = document.getElementById('editFeaturesSidebar').checked;
                 
                 
                 // validate inputs
@@ -323,7 +340,8 @@
                         leafletView: mapView,
                         typologies: typologies,
                         backgroundMaps: backgroundMaps,
-                        preferredMapLanguage: preferredMapLanguage
+                        preferredMapLanguage: preferredMapLanguage,
+                        sidebar: sidebar
                     })
                 }) // if status is ok, get the map id from the response
                 .then(res => {
@@ -494,6 +512,19 @@
                 container.appendChild(soundcloudLabel);
                 container.appendChild(document.createElement('br'));
 
+                var imageCheckbox = document.createElement('input');
+                imageCheckbox.type = 'checkbox';
+                imageCheckbox.id = 'image';
+                imageCheckbox.name = 'image';
+                imageCheckbox.value = 'image';
+                var imageLabel = document.createElement('label');
+                imageLabel.htmlFor = 'image';
+                imageLabel.style.display = 'inline';
+                imageLabel.innerHTML = 'Image';
+                container.appendChild(imageCheckbox);
+                container.appendChild(imageLabel);
+                container.appendChild(document.createElement('br'));
+
                 // create button to remove custom geo item
                 var removeButton = document.createElement('button');
                 // overwrite deafult "submit" behaviour
@@ -525,7 +556,8 @@
                     geometryTypeInput: geometryTypeSelect,
                     customFeatureInput: tableTags,
                     youtubeCheckbox: youtubeCheckbox,
-                    soundcloudCheckbox: soundcloudCheckbox
+                    soundcloudCheckbox: soundcloudCheckbox,
+                    imageCheckbox: imageCheckbox
                 });
                 // add container to customGeoItems div
                 document.getElementById('customGeoItems').appendChild(container);

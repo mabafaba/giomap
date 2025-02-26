@@ -70,7 +70,8 @@ const User = require('../../users/js/users.model');
             shareLinkId: req.body.shareLinkId,
             typologies: req.body.typologies,
             backgroundMaps: req.body.backgroundMaps,
-            preferredMapLanguage: req.body.preferredMapLanguage
+            preferredMapLanguage: req.body.preferredMapLanguage,
+            sidebar: req.body.sidebar
         })
         .then((mapCanvas) => {
             return mapCanvas.save();

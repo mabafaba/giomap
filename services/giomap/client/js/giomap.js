@@ -18,6 +18,7 @@ class Giomap {
         this.map = null;
         this.leafletIO = null;
         this.typologies = null;
+        this.sidebar = false;
     }
     
     async init () {
@@ -45,6 +46,12 @@ class Giomap {
         this.#addBaseMapTiles(mapCanvas, this.map);
         // add zoom control to map
         L.control.zoom({position: 'bottomright'}).addTo(this.map);
+
+        if(this.metadata.sidebar){
+            this.sidebar = true;
+        } else {
+            this.sidebar = false;
+        }
         
         
         const onNewFeature = (layer) => {
@@ -53,8 +60,7 @@ class Giomap {
             layer.feature.properties = layer.feature.properties ? layer.feature.properties : {};
             layer.feature.properties.username = layer.feature.properties.username ? layer.feature.properties.username : this.user.username;
             layer.feature.properties.color = layer.feature.properties.color ? layer.feature.properties.color : this.user.data.drawingColor;
-            console.log('new feature, adding popup with', this.addEditPropertiesPopupToLayer.toString());
-            this.addEditPropertiesPopupToLayer(layer);
+            this.addEditPropertiesPopupToLayer(layer, this.sidebar);
         }
 
         // connect this map to the backend and to other users 
@@ -131,151 +137,162 @@ class Giomap {
         }
         
         
-        addEditPropertiesPopupToLayer (somelayer){
+        addEditPropertiesPopupToLayer(somelayer, sidebar = true) {
             console.log('adding edit prop popup', somelayer);
-            // parameter called "someLayer" because scope is a little confusing here.   
-            
-            // this whole portion is a bit convoluted:
-            // - addEditPropertiesPopupToLayer is a method of the Giomap class. It adds a popup to a layer,
-            // which contains a form for editing the layer's properties.
-            
-            // it is passed to the leafletIO instance as a callback for the 'newFeature' event, 
-            // because leafletio handles all incoming features (drawn, live received or downloaded from server history),
-            // That way, all new features get a popup.
-            
-            // however the submission of the form is handled by a TypologySelector instance,
-            // which needs to know which layer it is working with.
-            // by defining the TypologySelector instance within the addEditPropertiesPopupToLayer method,
-            // as a js "closure", it has access to the layer variable.
-            
-            // long story short: refactoring this part to get rid of the nested function definitions will cause PROBLEMS <3 because the whole thing relies on the environment each function is created in. Good luck!
-            
-            
-            somelayer.bindPopup();
-            somelayer.on('popupopen', function(e) {
-                console.log("opening pop up", somelayer);
-                // if clicked on a polygon, set fill color, if its a polygon and not a line or point
-                if(somelayer.feature.properties.color){
-                    somelayer.setStyle({
-                        fillColor: somelayer.feature.properties.color
-                    });
-                }
-                
-                
-                
-                const submitPopupForm = (e) =>{
-                    
-                    e.preventDefault(); // prevent default submit action
-                    e.stopImmediatePropagation(); // prevent other event listeners from firing
 
-                    // if its not a point 
-                    
+            const createPopupContent = () => {
+                const submitPopupForm = (e) => {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
                     somelayer.setStyle({
                         fillColor: "transparent"
                     });
-                
-                    
-                    // if cancel button was clicked, close popup and return 
-                    if(e.submitter.value=="cancel"){
-                        somelayer.closePopup();
+
+                    if (e.submitter.value == "cancel") {
+                        if (!sidebar) {
+                            somelayer.closePopup();
+                        } else {
+                            document.getElementById('sidebar').style.display = 'none';
+                        }
                         return;
-                        
                     }
-                    
-                    // if save button was clicked, copy form data to layer and send to server
-                    if(e.submitter.value=="save"){
-                        // make sure layer has a feature object with properties key
+
+                    if (e.submitter.value == "save") {
                         var feature = somelayer.feature = somelayer.feature || {};
                         feature.type = "Feature";
                         feature.properties = feature.properties || {};
-                        // set typology based on selected typology
                         feature.properties.typology = typologySelector.selectedTypology();
-                        feature.properties.custom = typologySelector.data;    
-                        
+                        feature.properties.custom = typologySelector.data;
+
                         giomap.leafletIO.setLayerForEveryone(somelayer);
                     }
-                    somelayer.closePopup();
-                    
-                }
-                
-                // create typology selector & form
+
+                    if (!sidebar) {
+                        somelayer.closePopup();
+                    } else {
+                        // hide all sidebars
+                        document.querySelectorAll('#sidebar').forEach(sb => sb.style.display = 'none');
+                    }
+                };
+
                 const typologySelector = new TypologySelector(giomap.typologies, null, submitPopupForm);
-                
+
                 var feature = somelayer.feature = somelayer.feature || {};
                 feature.type = "Feature";
                 feature.properties = feature.properties || {};
-                
-                // set typology based on existing data
-                if(feature.properties.typology && feature.properties.typology.name && feature.properties.typology.name !== ""){
+
+                if (feature.properties.typology && feature.properties.typology.name && feature.properties.typology.name !== "") {
                     typologySelector.update(
                         feature.properties.typology,
                         feature.properties.custom ? feature.properties.custom : {}
-                        
                     );
                 }
-                
-                
-                // "created by" info (not editable)
-                if(feature.properties.username){
+
+                if (feature.properties.username) {
                     var createdByParagraph = document.createElement('p');
                     createdByParagraph.style.fontSize = "0.8em";
                     createdByParagraph.style.color = "gray";
                     createdByParagraph.innerHTML = `by <span id="createdBy">${feature.properties.username}</span>`;
-                    // add to parent
-                    // popupContainer.appendChild(createdByParagraph);
-                    // popupContainer.appendChild(document.createElement('br'));
-                    // popupContainer.appendChild(document.createElement('br'));
-                    
                 }
-                
-                // delete layer button. Not a submit button. It just deletes the layer straight away.
-                //  div with boxicon bx bx-trash
-                
-                //position:absolute;width:15px;right:5px;bottom:5px
+
                 var deleteButton = document.createElement('div');
                 deleteButton.style.position = "absolute";
                 deleteButton.style.width = "15px";
                 deleteButton.style.right = "5px";
                 deleteButton.style.bottom = "5px";
-                
-                
-                // deleteButton.innerHTML = '<a href="#" title="Delete layer" role="button" aria-label="Delete Layer" id="deleteLayer"><i class="bx bx-trash" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:red; margin: auto;"></i></a>';
-                // instead, place in bottom right corner of popup
+                if(!sidebar){
                 deleteButton.innerHTML = '<a href="#" title="Delete layer" role="button" aria-label="Delete Layer" id="deleteLayer"><i class="bx bx-trash" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:black; margin: auto;"></i></a>';
-                // above is top center.
-                deleteButton.onclick = function(e){
+                } else {
+                    // white
+                    deleteButton.innerHTML = '<a href="#" title="Delete layer" role="button" aria-label="Delete Layer" id="deleteLayer"><i class="bx bx-trash" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:white; margin: auto;"></i></a>';
+                }
+                deleteButton.onclick = function(e) {
                     giomap.leafletIO.deleteLayerFromServer(somelayer);
                     somelayer.remove();
-                }
-                
-                
-                
-                
-                // build html
+                };
+
                 var popupContainer = document.createElement('div');
                 popupContainer.appendChild(typologySelector.html);
                 popupContainer.appendChild(typologySelector.typologyPropertiesForm.form);
-                
-                if(feature.properties.username){
+
+                if (feature.properties.username) {
                     popupContainer.appendChild(createdByParagraph);
                     popupContainer.appendChild(document.createElement('br'));
                     popupContainer.appendChild(document.createElement('br'));
                 }
                 popupContainer.appendChild(deleteButton);
+
+                return popupContainer;
+            };
+
+            if (sidebar) {
+                somelayer.openSidebar = ()=>{
+                    const existingSidebars = document.querySelectorAll('#sidebar');
+                existingSidebars.forEach(sb => sb.remove());
+                // create sidebar
+
+                const sidebarDiv = document.getElementById('sidebar') || document.createElement('div');
+                sidebarDiv.id = 'sidebar';
+                sidebarDiv.style.position = 'fixed';
+                sidebarDiv.style.top = '0';
+                sidebarDiv.style.right = '0';
+                // 100% minus padding
+                sidebarDiv.style.width = 'calc(100% - 40px)';
+                // max width 800px
+                sidebarDiv.style.maxWidth = '600px';
+                // 100% - 70px height
+                sidebarDiv.style.height = 'calc(100% - 120px)'; 
+                sidebarDiv.style.backgroundColor = 'white';
+                sidebarDiv.style.zIndex = '5000';
+                sidebarDiv.style.overflowY = 'scroll';
+                sidebarDiv.style.display = 'block';
+                sidebarDiv.style.padding = '20px';  
+                //70x top margin
+                sidebarDiv.style.marginTop = '70px';
+                sidebarDiv.innerHTML = '';
+                sidebarDiv.style.backgroundColor = '#000000EE'
+                sidebarDiv.appendChild(createPopupContent());
                 
+                // round (x) button top left to close sidebar
+                var closeSidebarButton = document.createElement('div');
+                closeSidebarButton.style.position = "absolute";
+                closeSidebarButton.style.width = "15px";
+                closeSidebarButton.style.left = "5px";
+                closeSidebarButton.style.top = "5px";
                 
-                // append form to popup content
-                somelayer.setPopupContent(popupContainer);
+                closeSidebarButton.innerHTML = '<a href="#" title="Close sidebar" role="button" aria-label="Close Sidebar" id="closeSidebar"><i class="bx bx-x" style="font-size: 2rem; display: flex; align-items: center; justify-content: center; color:white; margin: auto;"></i></a>';
+                closeSidebarButton.onclick = function(e) {
+                   // remove all sidebars
+                     document.querySelectorAll('#sidebar').forEach(sb => sb.remove());
+                }
+                sidebarDiv.appendChild(closeSidebarButton);
+
+                document.body.appendChild(sidebarDiv);
+
+                }
+
+                somelayer.closeSidebar = ()=>{
+                    document.querySelectorAll('#sidebar').forEach(sb => sb.remove());
+                }
+                somelayer.on('click', function(e) {
+                    // fly to layer
+                    giomap.map.flyTo(e.latlng, giomap.map.getZoom());
+                    // open sidebar
+                    somelayer.openSidebar();
                 
-                
-                
-            });
-            
-            
-            
+                });
+
+            } else {
+                somelayer.bindPopup();
+                somelayer.on('popupopen', function(e) {
+                    somelayer.setPopupContent(createPopupContent());
+                });
+            }
+
             return somelayer;
-            
         }
+
         
         
         fetchMapMetaData (mapCanvasID){

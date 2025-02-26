@@ -325,6 +325,9 @@
                         // reinstate popup
                         layer.on('click', (e)=>{
                             e.target.openPopup();
+                            if(e.target.openSidebar){
+                                e.target.openSidebar();
+                            }
                         });
 
                     });

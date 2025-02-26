@@ -301,6 +301,79 @@ class TypologyPropertiesForm {
                     }
                 });
             }
+
+
+            if(field.type === 'image'){
+                console.log('adding image field');
+                
+
+                var imageInput = document.createElement('input');
+                imageInput.name = field.name;
+                imageInput.type = 'file';
+                imageInput.accept = "image/png, image/jpeg";
+                imageInput.style.width = "100%";
+
+                
+                this.typologyPropertiesFormGroup.appendChild(imageInput);
+
+
+                var imagePreview = document.createElement('img');
+                imagePreview.id = `${field.name}_preview`;
+                imagePreview.style.width = "100%";
+                imagePreview.style.marginBottom = "10px";
+                imagePreview.style.display = 'none';
+                this.typologyPropertiesFormGroup.appendChild(imagePreview);
+
+                var imageTrashButton = document.createElement('button');
+                imageTrashButton.innerHTML = '<i class="bx bx-trash"></i>';
+                imageTrashButton.style.cursor = "pointer";
+                // grey background
+                imageTrashButton.style.backgroundColor = "grey";
+                // default dont shiow
+                imageTrashButton.style.display = 'none';
+                imageTrashButton.addEventListener('click', () => {
+                    // stop propagation
+                    event.stopPropagation();
+                    // dont submit form
+                    event.preventDefault();
+                    // any other bubbling no
+                    console.log("deleting image");
+                    imageInput.value = '';
+                    imagePreview.src = '';
+                    imagePreview.style.display = 'none';
+                    // display image input
+                    imageInput.style.display = 'block';
+                    // hide trash button
+                    imageTrashButton.style.display = 'none';
+                    // 5px top margin
+                    imageTrashButton.style.marginTop = '5px';
+                    imageTrashButton.style.marginBottom = '15px';
+                });
+                this.typologyPropertiesFormGroup.appendChild(imageTrashButton);
+
+                imageInput.addEventListener('change', (e) => {
+                    var file = e.target.files[0];
+                    if (file) {
+                        var reader = new FileReader();
+                        reader.onload = (event) => {
+                            imagePreview.src = event.target.result;
+                            imagePreview.style.display = 'block';
+                            // hide input
+                            imageInput.style.display = 'none';
+                            // show trash button
+                            imageTrashButton.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        imagePreview.src = '';
+                        imagePreview.style.display = 'none';
+                        // display image input
+                        imageInput.style.display = 'block';
+                        // hide trash button
+                        imageTrashButton.style.display = 'none';
+                    }
+                });
+            }
             
             this.typologyPropertiesFormGroup.appendChild(document.createElement('br'));
         });
@@ -360,6 +433,33 @@ class TypologyPropertiesForm {
                 soundcloudEmbed.style.display = 'none';
             }
         }
+
+        if (field.type === 'image') {
+            // assume that value is a base 64 character string.
+            // the file input element is empty, but the image preview should be updated
+            var imagePreview = this.typologyPropertiesFormGroup.querySelector(`img[id="${field.name}_preview"]`);
+            if(value == ""){
+                imagePreview.src = '';
+                imagePreview.style.display = 'none';
+                // display image input
+                var imageInput = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
+                imageInput.style.display = 'block';
+                // hide trash button
+                var imageTrashButton = this.typologyPropertiesFormGroup.querySelector(`button`);
+                imageTrashButton.style.display = 'none';
+                return;
+            }
+            imagePreview.src = value;
+            imagePreview.style.display = 'block';
+            // hide input
+            var imageInput = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
+            imageInput.style.display = 'none';
+            // show trash button
+            var imageTrashButton = this.typologyPropertiesFormGroup.querySelector(`button`);
+            imageTrashButton.style.display = 'block';
+
+        }
+
     }
     
     updateData(data) {
@@ -404,6 +504,7 @@ class TypologyPropertiesForm {
         
         var data = {};
         this.typology.properties.forEach((field) => {
+            console.log(field);
             if (field.type === 'text') {
                 var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
                 data[field.name] = input.value;
@@ -421,6 +522,15 @@ class TypologyPropertiesForm {
                 var input = this.typologyPropertiesFormGroup.querySelector(`input[name="${field.name}"]`);
                 data[field.name] = input.value;
             }
+
+            if (field.type === 'image') {
+                
+                var imagePreview = this.typologyPropertiesFormGroup.querySelector(`img[id="${field.name}_preview"]`);
+                console.log('adding data from image preview', imagePreview.src);
+                data[field.name] = imagePreview.src;
+            }
+                
+            
         });
         return data;
     }

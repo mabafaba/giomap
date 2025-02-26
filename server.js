@@ -10,7 +10,10 @@ const giomapService = require("./services/giomap");
 const app = express();
 const server = http.createServer(app);
 // io on path /giomap-socket-io
-const io = require("socket.io")(server, {path: "/giomap-socket-io"});
+const io = require("socket.io")(server, {
+  path: "/giomap-socket-io",
+  maxHttpBufferSize: 25 * 1024 * 1024 // 25 MB
+});
 app.use(express.json())
 
 // mout services

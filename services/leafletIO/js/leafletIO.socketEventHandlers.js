@@ -122,6 +122,8 @@ const saveGeometryToDatabase = async (layer, room) => {
     })
     const saved = await leafletIOEntry.save();  
   }
+  // log the layer
+  console.log('saved geometry', layer.properties);
   return layer;
 
 }

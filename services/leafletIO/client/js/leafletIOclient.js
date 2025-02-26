@@ -249,6 +249,9 @@ leafletIOclient = function(map, mapRoom, leafletIOEndpoint, onNewFeature) {
                 this.editingLayer.eachLayer( (layer) => {
                     if(layer.feature.properties.uuid == uuid){
                         layer.closePopup();
+                        if(layer.closeSidebar){
+                            layer.closeSidebar();
+                        }
                         this.highlightFeature(layer);
                         this.flyToFeature(layer);
                     }
@@ -356,7 +359,13 @@ leafletIOclient = function(map, mapRoom, leafletIOEndpoint, onNewFeature) {
                 // add popup to layer
                 this.events.newFeature.fire(layer);
                                 // layerWithPopup.openPopup();
-                setTimeout(function(){layer.openPopup();}, 0); // waiting 0ms resolves the popup not opening when a rectangle is created by dragging instead of two clicks
+                setTimeout(function(){
+                    layer.openPopup();
+                    if(layer.openSidebar){
+                        layer.openSidebar();
+                    }
+                
+                }, 0); // waiting 0ms resolves the popup not opening when a rectangle is created by dragging instead of two clicks
                 this.editingLayer.addLayer(layer);
                 
                 // save layer to server
@@ -397,6 +406,9 @@ leafletIOclient = function(map, mapRoom, leafletIOEndpoint, onNewFeature) {
                 editingLayer.eachLayer(function (layer) {
                     // close any open popups
                     layer.closePopup();
+                    if(layer.closeSidebar){
+                        layer.closeSidebar();
+                    }
                     // disable popup on click
                     layer.off('click');
                 });
@@ -407,6 +419,9 @@ leafletIOclient = function(map, mapRoom, leafletIOEndpoint, onNewFeature) {
                 editingLayer.eachLayer(function (layer) {
                     layer.on('click', function(e) {
                         layer.openPopup();
+                        if(layer.openSidebar){
+                            layer.openSidebar();
+                        }
                     });
                 });
             });
