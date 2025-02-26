@@ -1,5 +1,5 @@
 
-leafletIOclient = function(map, mapRoom, leafletIOEndpoint){
+leafletIOclient = function(map, mapRoom, leafletIOEndpoint, onNewFeature) {
     
     // make sure socket.io is loaded in the browser
     if(!io){
@@ -47,6 +47,9 @@ leafletIOclient = function(map, mapRoom, leafletIOEndpoint){
         },
         
         init: function (map) {
+            if(onNewFeature){
+                this.on('newFeature', onNewFeature);
+            }
             
             this.loadDependencies();
             // Initialise the FeatureGroup to store editable layers
@@ -516,16 +519,12 @@ leafletIOclient = function(map, mapRoom, leafletIOEndpoint){
                     // add geojson to editingLayer
                     var geojsonLayer = this.GeoJsonToLayer(data);
                     
-                    
-                    
                     geojsonLayer.forEach(
                         (l)=>{
                             this.events.newFeature.fire(l);
                             targetLayer.addLayer(l);
                             this.styleGeometry(l);
                             // add internal onclick event
-                            
-                            
                             
                             
                         });

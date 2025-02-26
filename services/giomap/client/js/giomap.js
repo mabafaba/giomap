@@ -47,27 +47,34 @@ class Giomap {
         L.control.zoom({position: 'bottomright'}).addTo(this.map);
         
         
+        const onNewFeature = (layer) => {
+            // add base properties to layer if they don't exist
+            layer.feature = layer.feature ? layer.feature : {};
+            layer.feature.properties = layer.feature.properties ? layer.feature.properties : {};
+            layer.feature.properties.username = layer.feature.properties.username ? layer.feature.properties.username : this.user.username;
+            layer.feature.properties.color = layer.feature.properties.color ? layer.feature.properties.color : this.user.data.drawingColor;
+            console.log('new feature, adding popup with', this.addEditPropertiesPopupToLayer.toString());
+            this.addEditPropertiesPopupToLayer(layer);
+        }
+
         // connect this map to the backend and to other users 
         // this contains all the logic for editing the map and keeping users in sync.
         // see leafletJS service for more details.
         this.leafletIO = leafletIOclient(
             this.map,
             this.mapId,
-            '/giomap/leafletIO');
+            '/giomap/leafletIO',
+            onNewFeature);
             
             // get user details and set drawing color accordingly
             await this.fetchUser();
             
             // newFeature events must be handled by the leafletIO instance, as they come in through different channels
             // (drawn by user, live received through socket.io, or downloaded from server on initial load)
-            this.leafletIO.on('newFeature', (layer) => {
-                // add base properties to layer if they don't exist
-                layer.feature = layer.feature ? layer.feature : {};
-                layer.feature.properties = layer.feature.properties ? layer.feature.properties : {};
-                layer.feature.properties.username = layer.feature.properties.username ? layer.feature.properties.username : this.user.username;
-                layer.feature.properties.color = layer.feature.properties.color ? layer.feature.properties.color : this.user.data.drawingColor;
-                this.addEditPropertiesPopupToLayer(layer);
-            });
+            // this.leafletIO.on('newFeature', );
+
+            // re-init leafletIO
+            // this.leafletIO.init();
             
             
             return this;
@@ -125,7 +132,7 @@ class Giomap {
         
         
         addEditPropertiesPopupToLayer (somelayer){
-            console.log('adding edit prop popup');   
+            console.log('adding edit prop popup', somelayer);
             // parameter called "someLayer" because scope is a little confusing here.   
             
             // this whole portion is a bit convoluted:
@@ -146,7 +153,7 @@ class Giomap {
             
             somelayer.bindPopup();
             somelayer.on('popupopen', function(e) {
-                console.log(somelayer);
+                console.log("opening pop up", somelayer);
                 // if clicked on a polygon, set fill color, if its a polygon and not a line or point
                 if(somelayer.feature.properties.color){
                     somelayer.setStyle({

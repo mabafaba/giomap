@@ -438,14 +438,20 @@
             .leaflet-control a:hover {
                 color: inherit;
             }
-            
             .leaflet-popup-content {
                 min-width: 500px;
                 /* everything regular sized, not smaller */
                 font-size: 1.2rem;
-                
                 overflow-y: scroll;
             }
+
+            @media (max-width: 600px) {
+                .leaflet-popup-content {
+                    min-width: 300px;
+                }
+            }
+
+            
             p {
                 display: inline;
             }

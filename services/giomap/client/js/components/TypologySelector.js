@@ -56,6 +56,10 @@ class TypologySelector {
         
         
         // empty default option
+        // if only one typologhy, hide droop down
+        if(this.typologies.length == 1){
+            typologySelector.hidden = true;
+        }
         
         // if more than one type
         if(this.typologies.length > 1){
