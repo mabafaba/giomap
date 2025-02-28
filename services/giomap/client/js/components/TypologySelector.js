@@ -448,7 +448,7 @@ class TypologyPropertiesForm {
                 var imageTrashButton = this.typologyPropertiesFormGroup.querySelector(`button`);
                 imageTrashButton.style.display = 'none';
                 return;
-            }
+            } else {
             imagePreview.src = value;
             imagePreview.style.display = 'block';
             // hide input
@@ -457,6 +457,7 @@ class TypologyPropertiesForm {
             // show trash button
             var imageTrashButton = this.typologyPropertiesFormGroup.querySelector(`button`);
             imageTrashButton.style.display = 'block';
+            }
 
         }
 
@@ -526,8 +527,8 @@ class TypologyPropertiesForm {
             if (field.type === 'image') {
                 
                 var imagePreview = this.typologyPropertiesFormGroup.querySelector(`img[id="${field.name}_preview"]`);
-                console.log('adding data from image preview', imagePreview.src);
-                data[field.name] = imagePreview.src;
+                const src = imagePreview.getAttribute("src");
+                data[field.name] = src;
             }
                 
             
